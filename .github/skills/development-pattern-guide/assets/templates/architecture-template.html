@@ -4,59 +4,84 @@
   This is NOT a full page. It is the {{CHAPTER_BODY}} content for the
   "High Level Architecture" chapter. Wrap it with page-template.html.
 
-  It demonstrates the required interactive architecture diagram:
-    • a grid of clickable cards (.arch-card) — one per core system/sub-system,
-    • each card opens a .modal dialog with deeper detail (data-modal -> id),
-    • an optional .arch-flow row that shows data/request flow.
+  It renders an interactive, LEFT-TO-RIGHT layered NODE GRAPH:
+    • .arch-graph        → the graph (a row of layer columns).
+    • .arch-layer        → one column; sources on the left, dependents to the right.
+    • .arch-node         → a clickable node (button) that opens a .modal detail dialog
+                           via data-modal="<id>". Give every node a unique id="node-…".
+    • .arch-edges        → a HIDDEN <ul> of edge definitions. guide.js reads it and
+                           draws non-overlapping SVG arrows between the nodes:
+                             <li data-from="node-a" data-to="node-b"
+                                 data-label="imports"></li>
+                           data-label is the RELATIONSHIP and is printed on the edge.
 
-  Rules:
-    • Use GENERAL-PURPOSE names (e.g. "Data Model", "Request Router") — never the
-      source codebase's real class/system names.
-    • Every .arch-card[data-modal="X"] MUST have a matching <div class="modal" id="X">.
-    • Duplicate the card+modal pair per component. Keep ids unique & descriptive.
+  GROUPING (keep edges from overlapping):
+    • If a flat graph is so busy that arrows would have to cross, collapse the dense
+      region into a SYSTEM NODE: add class "arch-node--system". Its detail modal holds
+      a NESTED graph — <div class="arch-graph arch-graph--nested"> with its own
+      .arch-layer / .arch-node / .arch-edges — showing just that system's internal
+      parts and their edges. guide.js draws the nested graph when the modal opens.
+    • In the MAIN graph, a system node keeps a SINGLE general-purpose (aggregated)
+      edge to each other node it relates to — mark it data-aggregate.
+
+  RULES:
+    • Use GENERAL-PURPOSE names ("Data Model", "Request Router") — never the source
+      codebase's real class/system names.
+    • Every .arch-node[data-modal="X"] MUST have a matching <div class="modal" id="X">.
+    • Every edge data-from / data-to MUST match a node id IN THE SAME graph.
+    • Every .arch-node--system modal MUST contain a nested .arch-graph.
   ----------------------------------------------------------------------------
 -->
 <section class="chapter-section">
   <header class="section-heading">
     <span class="eyebrow">The Big Picture</span>
     <h2>System Map</h2>
-    <p class="section-subhead">Click any component to expand its responsibilities and connections.</p>
+    <p class="section-subhead">Click any node to expand it. Arrows show how each component relates to the next.</p>
   </header>
 
-  <div class="arch-grid">
-    <button class="arch-card" type="button" data-modal="arch-entrypoint">
-      <span class="arch-card__icon" aria-hidden="true">▸</span>
-      <span class="arch-card__title">Entry Point</span>
-      <span class="arch-card__desc">Receives external requests and hands them to the core.</span>
-      <span class="arch-card__expand">Expand</span>
-    </button>
+  <div class="arch-graph" id="arch-main">
+    <div class="arch-layer">
+      <button class="arch-node" type="button" id="node-entrypoint" data-modal="arch-entrypoint">
+        <span class="arch-node__icon" aria-hidden="true">▸</span>
+        <span class="arch-node__title">Entry Point</span>
+        <span class="arch-node__desc">Receives external requests and hands them to the core.</span>
+        <span class="arch-node__expand">Expand</span>
+      </button>
+    </div>
 
-    <button class="arch-card" type="button" data-modal="arch-core">
-      <span class="arch-card__icon" aria-hidden="true">◆</span>
-      <span class="arch-card__title">Core System</span>
-      <span class="arch-card__desc">Coordinates the pattern's main responsibility.</span>
-      <span class="arch-card__expand">Expand</span>
-    </button>
+    <div class="arch-layer">
+      <button class="arch-node" type="button" id="node-core" data-modal="arch-core">
+        <span class="arch-node__icon" aria-hidden="true">◆</span>
+        <span class="arch-node__title">Core System</span>
+        <span class="arch-node__desc">Coordinates the pattern's main responsibility.</span>
+        <span class="arch-node__expand">Expand</span>
+      </button>
+    </div>
 
-    <button class="arch-card" type="button" data-modal="arch-data">
-      <span class="arch-card__icon" aria-hidden="true">▤</span>
-      <span class="arch-card__title">Data Model</span>
-      <span class="arch-card__desc">Represents and persists the domain data.</span>
-      <span class="arch-card__expand">Expand</span>
-    </button>
+    <div class="arch-layer">
+      <button class="arch-node arch-node--system" type="button" id="node-data" data-modal="arch-data">
+        <span class="arch-node__badge">System · 2 parts</span>
+        <span class="arch-node__icon" aria-hidden="true">▤</span>
+        <span class="arch-node__title">Data Subsystem</span>
+        <span class="arch-node__desc">Stores and retrieves the domain data.</span>
+        <span class="arch-node__expand">Open system</span>
+      </button>
+    </div>
+
+    <ul class="arch-edges" hidden>
+      <li data-from="node-entrypoint" data-to="node-core" data-label="sends to"></li>
+      <li data-from="node-core" data-to="node-data" data-label="persists via" data-aggregate></li>
+    </ul>
   </div>
 
-  <!-- Data / request flow -->
-  <div class="arch-flow" aria-label="Request flow">
-    <span class="arch-flow__node">Entry Point</span>
-    <span class="arch-flow__arrow" aria-hidden="true">→</span>
-    <span class="arch-flow__node">Core System</span>
-    <span class="arch-flow__arrow" aria-hidden="true">→</span>
-    <span class="arch-flow__node">Data Model</span>
-  </div>
+  <ul class="visually-hidden">
+    <li>Entry Point sends requests to the Core System.</li>
+    <li>The Core System persists data via the Data Subsystem.</li>
+    <li>The Data Subsystem contains a Data Access layer that reads and writes the Data Model.</li>
+  </ul>
 </section>
 
-<!-- ── Modals (one per card) ──────────────────────────────────────────── -->
+<!-- ── Modals ─────────────────────────────────────────────────────────── -->
 <div class="modal" id="arch-entrypoint" role="dialog" aria-modal="true" aria-labelledby="arch-entrypoint-title" hidden>
   <div class="modal__backdrop" data-close></div>
   <div class="modal__dialog" role="document">
@@ -64,8 +89,8 @@
     <p class="modal__eyebrow">Component</p>
     <h2 class="modal__title" id="arch-entrypoint-title">Entry Point</h2>
     <div class="modal__body">
-      <p>Describe what this component does, the boundary it owns, and how it
-         forwards work to the core system. Reference the general-purpose name only.</p>
+      <p>Describe what this component does, the boundary it owns, and how it forwards
+         work to the core system. Reference the general-purpose name only.</p>
     </div>
   </div>
 </div>
@@ -77,18 +102,66 @@
     <p class="modal__eyebrow">Component</p>
     <h2 class="modal__title" id="arch-core-title">Core System</h2>
     <div class="modal__body">
-      <p>Explain the core responsibility, the sub-systems it owns, and the
-         relationships that make the pattern work.</p>
+      <p>Explain the core responsibility, the sub-systems it owns, and the relationships
+         that make the pattern work.</p>
     </div>
   </div>
 </div>
 
-<div class="modal" id="arch-data" role="dialog" aria-modal="true" aria-labelledby="arch-data-title" hidden>
+<!-- System node modal: holds a NESTED graph of its internal parts -->
+<div class="modal modal--wide" id="arch-data" role="dialog" aria-modal="true" aria-labelledby="arch-data-title" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__dialog" role="document">
+    <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+    <p class="modal__eyebrow">System</p>
+    <h2 class="modal__title" id="arch-data-title">Data Subsystem</h2>
+    <div class="modal__body">
+      <p>This system was collapsed in the main map to keep the diagram readable. Inside,
+         a data-access layer reads and writes a plain data model.</p>
+      <div class="arch-graph arch-graph--nested" id="arch-data-graph">
+        <div class="arch-layer">
+          <button class="arch-node" type="button" id="node-data-access" data-modal="arch-data-access">
+            <span class="arch-node__icon" aria-hidden="true">▦</span>
+            <span class="arch-node__title">Data Access</span>
+            <span class="arch-node__desc">Hides persistence behind a small interface.</span>
+            <span class="arch-node__expand">Expand</span>
+          </button>
+        </div>
+        <div class="arch-layer">
+          <button class="arch-node" type="button" id="node-data-model" data-modal="arch-data-model">
+            <span class="arch-node__icon" aria-hidden="true">▤</span>
+            <span class="arch-node__title">Data Model</span>
+            <span class="arch-node__desc">The record that flows through the system.</span>
+            <span class="arch-node__expand">Expand</span>
+          </button>
+        </div>
+        <ul class="arch-edges" hidden>
+          <li data-from="node-data-access" data-to="node-data-model" data-label="reads &amp; writes"></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="arch-data-access" role="dialog" aria-modal="true" aria-labelledby="arch-data-access-title" hidden>
   <div class="modal__backdrop" data-close></div>
   <div class="modal__dialog" role="document">
     <button class="modal__close" type="button" data-close aria-label="Close">×</button>
     <p class="modal__eyebrow">Component</p>
-    <h2 class="modal__title" id="arch-data-title">Data Model</h2>
+    <h2 class="modal__title" id="arch-data-access-title">Data Access</h2>
+    <div class="modal__body">
+      <p>Explain the persistence boundary: the interface it exposes and how callers stay
+         ignorant of the backing store.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="arch-data-model" role="dialog" aria-modal="true" aria-labelledby="arch-data-model-title" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__dialog" role="document">
+    <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+    <p class="modal__eyebrow">Component</p>
+    <h2 class="modal__title" id="arch-data-model-title">Data Model</h2>
     <div class="modal__body">
       <p>Explain the shape of the data, how it is created and persisted, and which
          components depend on it.</p>

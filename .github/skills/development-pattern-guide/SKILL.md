@@ -109,8 +109,9 @@ Order is fixed for the framing chapters; pattern chapters sit in the middle.
 3. **Quick Start Guide** — install deps and run locally; goal: up and running in
    **under 10 minutes**, *no deep explanations yet*.
 4. **High Level Architecture** — core systems/sub-systems, major components, how
-   they interact, and data/request flow. Uses clickable **cards → modal dialogs**
-   (see §7 and `architecture-template.html`).
+   they interact, and data/request flow. Rendered as an interactive **left-to-right
+   node graph**: clickable **nodes → modal dialogs**, with directional **labeled
+   edges** showing each relationship (see §7 and `architecture-template.html`).
 5. **Helpful Resources** — curated URLs for the stack and concepts used by the pattern.
 
 **Then the pattern chapters** — the "learn by doing" core. Break the pattern into
@@ -146,8 +147,16 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
 - Most chapters → `templates/page-template.html`.
 - Table of Contents (`index.html`) → `templates/toc-template.html`.
 - High Level Architecture → `page-template.html` with its `{{CHAPTER_BODY}}` built
-  from `templates/architecture-template.html` (one card **and** one matching modal
-  per component; unique ids).
+  from `templates/architecture-template.html`. Build the **node graph**: place each
+  component as an `.arch-node` (unique `id`, `data-modal` → matching modal) inside
+  left-to-right `.arch-layer` columns (sources left, dependents right), and list the
+  relationships in the hidden `.arch-edges` `<ul>` (`data-from`/`data-to`/`data-label`,
+  where the label is the relationship). **If the graph would be busy enough that edges
+  must cross, group the dense region into a system node** (`.arch-node--system`) whose
+  modal embeds a nested `.arch-graph`; give that system node a single aggregated edge
+  (`data-aggregate`) to each external node it relates to (see §7). The graph
+  **auto-scales to fit** the content column and is **centred** (handled by
+  `guide.js`) — never hand-size it; instead group into system nodes when it is large.
 - Set `{{ASSETS}}` to `assets` (all pages sit at the guide root).
 - Apply the **content & style rules** in §7 to every page.
 - Use **general-purpose names** only (Step 4).
@@ -169,6 +178,9 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
   removed (`grep -R "{{" <guide>` and `grep -R "TEMPLATE-GUIDE" <guide>` return nothing).
 - Confirm every internal `href` resolves to a file that exists, and every
   `data-modal="X"` has a matching `id="X"`.
+- Architecture graph: every `.arch-edges` `data-from`/`data-to` matches an
+  `.arch-node` `id` **in the same graph**; every `.arch-node--system` modal contains a
+  nested `.arch-graph`; edges carry a `data-label` relationship.
 - Confirm `assets/` has the stylesheet, `guide.js`, fonts, and `vendor/highlight.min.js`;
   no network URLs. Spot-check that chapter pages still include the deferred
   `vendor/highlight.min.js` script (it ships in `page-template.html`) and that
@@ -206,8 +218,9 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
    - **Re-skin from a supplied style guide** (`--style-guide` + `--style-css`):
      follow §6, then regenerate page markup as needed to fit the new design system.
 3. Keep the structure intact: every page must still have the fly-out TOC, stylized
-   section dividers, chapter header+subhead, interactive cards, architecture
-   cards→modals, and footer prev/next (mapped onto the new design — see §6).
+   section dividers, chapter header+subhead, interactive cards, the architecture
+   node graph (nodes→modals with labeled edges), and footer prev/next (mapped onto the
+   new design — see §6).
 4. Update `guide.json` (`stylesheet`, and `styleSource` if applicable). Re-run §3
    Step 9 checks. Confirm the result stays fully offline (no CDN references).
 
@@ -227,7 +240,8 @@ When the user supplies their own style guide, **use it in place of the default**
    the discovered vocabulary, matching these required capabilities to whatever the
    design system provides:
    fly-out Table of Contents · stylized section dividers · chapter header+subhead ·
-   interactive (hover-reactive) cards · architecture cards that open modal dialogs ·
+   interactive (hover-reactive) cards · an architecture node graph whose nodes open
+   modal dialogs and whose labeled edges show relationships ·
    footer prev/next (Previous left, Next right).
 4. **Synthesize gaps in-style.** If a required component has no equivalent, create a
    small complementary style **consistent with the supplied system's tokens,
@@ -265,10 +279,31 @@ When the user supplies their own style guide, **use it in place of the default**
     not one of highlight.js's common languages, **omit the class** and auto-detection
     handles it. Always keep code **HTML-escaped** (`<`→`&lt;`, `&`→`&amp;`).
 - **Interactive cards.** Use `.info-card` (in `.card-grid`) for important callouts;
-  they have reactive hover effects already. The architecture chapter uses
-  `.arch-card` (clickable) → `.modal`.
-- **Architecture diagrams.** HTML card-based, clickable to expand into modal dialogs
-  with more detail; include a `.arch-flow` row for data/request flow.
+  they have reactive hover effects already. The architecture chapter uses clickable
+  `.arch-node`s (graph nodes) → `.modal`.
+- **Architecture node graph.** Render the architecture as a left-to-right layered
+  **node graph**, not a flat card grid:
+  - Each component is an `.arch-node` button (unique `id`, `data-modal` → its detail
+    `.modal`) placed in an `.arch-layer` column; sources on the left, dependents to the
+    right.
+  - Declare relationships in a hidden `<ul class="arch-edges">` of
+    `<li data-from="node-a" data-to="node-b" data-label="imports">`. `guide.js` draws
+    non-overlapping SVG arrows; `data-label` is printed on each edge to name the
+    relationship.
+  - **Auto-fit & centred.** `guide.js` measures the graph and, if it would be wider
+    than the content column, scales the whole graph (nodes + edges together) down so it
+    always fits — it never scrolls. The graph is centred in the column. You never set a
+    width or scale by hand; just keep graphs readable by grouping (below).
+  - **Avoid overlapping edges by grouping.** If the graph is busy enough that arrows
+    would have to cross, collapse the dense region into a **system node**
+    (`.arch-node--system`). Its detail modal embeds a nested
+    `<div class="arch-graph arch-graph--nested">` showing only that system's internal
+    components and their edges. In the main graph the system node keeps **one
+    general-purpose (aggregated) edge** — mark it `data-aggregate` — to each external
+    node it relates to.
+  - Contracts: every edge `data-from`/`data-to` matches a node `id` in the same graph;
+    every node `data-modal` has a matching modal `id`; every system node's modal
+    contains a nested `.arch-graph`. Use general-purpose names only.
 - **Fly-out Table of Contents.** Present on every page (the vertical **Contents**
   button on the left that reveals the panel on hover/focus/click).
 - **Footer prev/next.** Present on every page; each button labeled with the adjacent
@@ -301,7 +336,7 @@ Replace **all** of them; none may remain in a finished page.
 ├── 01-introduction.html
 ├── 02-prerequisites.html
 ├── 03-quick-start.html
-├── 04-high-level-architecture.html    (cards → modals)
+├── 04-high-level-architecture.html    (node graph → modals)
 ├── 05-helpful-resources.html
 ├── 06..NN-<pattern chapters>.html     (learn-by-doing)
 ├── <NN>-extending-the-system.html

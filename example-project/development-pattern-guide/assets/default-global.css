@@ -629,18 +629,53 @@ pre.codeblock code.hljs { display: block; padding: 0; background: transparent; c
 .info-card h3 { font-size: var(--text-sm); margin-bottom: var(--space-3); }
 .info-card p { font-size: var(--text-xs); line-height: var(--leading-normal); color: var(--ink); }
 
-/* === 12. Architecture diagram (clickable cards -> modal) =========== */
-.arch-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--space-4);
+/* === 12. Architecture node graph (nodes -> modals, SVG edges) ====== */
+.arch-graph {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(40px, 6vw, 96px);
+  min-height: 280px;
   margin: var(--space-6) 0;
+  padding: var(--space-5) var(--space-4);
 }
-.arch-card {
+/* SVG overlay carrying the edges; sits behind the nodes */
+.arch-graph__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+/* edge labels overlay — sits ABOVE the node cards so labels are never covered */
+.arch-graph__labels {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  overflow: visible;
+}
+.arch-layer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-5);
+  flex: 0 0 auto;
+}
+.arch-node {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
+  width: 210px;
   padding: var(--space-5);
   text-align: left;
   background: var(--card);
@@ -657,7 +692,7 @@ pre.codeblock code.hljs { display: block; padding: 0; background: transparent; c
     box-shadow var(--motion-base) var(--ease-standard),
     border-color var(--motion-base) var(--ease-standard);
 }
-.arch-card::before {
+.arch-node::before {
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
@@ -667,15 +702,15 @@ pre.codeblock code.hljs { display: block; padding: 0; background: transparent; c
   transform-origin: left;
   transition: transform var(--motion-base) var(--ease-emphasized);
 }
-.arch-card:hover,
-.arch-card:focus-visible {
+.arch-node:hover,
+.arch-node:focus-visible {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
   border-color: var(--link);
 }
-.arch-card:hover::before,
-.arch-card:focus-visible::before { transform: scaleX(1); }
-.arch-card__icon {
+.arch-node:hover::before,
+.arch-node:focus-visible::before { transform: scaleX(1); }
+.arch-node__icon {
   display: inline-grid;
   place-items: center;
   width: 40px;
@@ -685,9 +720,9 @@ pre.codeblock code.hljs { display: block; padding: 0; background: transparent; c
   color: var(--link);
   font-size: var(--text-lg);
 }
-.arch-card__title { font-family: var(--font-display); font-weight: 700; font-size: var(--text-sm); color: var(--header-ink); }
-.arch-card__desc { font-size: var(--text-xs); line-height: var(--leading-normal); color: var(--ink); }
-.arch-card__expand {
+.arch-node__title { font-family: var(--font-display); font-weight: 700; font-size: var(--text-sm); color: var(--header-ink); }
+.arch-node__desc { font-size: var(--text-xs); line-height: var(--leading-normal); color: var(--ink); }
+.arch-node__expand {
   margin-top: var(--space-2);
   font-family: var(--font-display);
   font-weight: 700;
@@ -700,11 +735,77 @@ pre.codeblock code.hljs { display: block; padding: 0; background: transparent; c
   transition: opacity var(--motion-base) var(--ease-standard),
               transform var(--motion-base) var(--ease-emphasized);
 }
-.arch-card:hover .arch-card__expand,
-.arch-card:focus-visible .arch-card__expand { opacity: 1; transform: translateY(0); }
-.arch-card__expand::after { content: ' ↗'; }
+.arch-node:hover .arch-node__expand,
+.arch-node:focus-visible .arch-node__expand { opacity: 1; transform: translateY(0); }
+.arch-node__expand::after { content: ' ↗'; }
 
-/* Data / request flow row */
+/* System node: a collapsed group that opens a nested graph */
+.arch-node--system {
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    var(--panel);
+  box-shadow:
+    6px 6px 0 -1px var(--panel),
+    6px 6px 0 0 var(--border),
+    var(--shadow-sm);
+}
+.arch-node--system:hover,
+.arch-node--system:focus-visible {
+  box-shadow:
+    6px 6px 0 -1px var(--panel),
+    6px 6px 0 0 var(--link),
+    var(--shadow-lg);
+}
+.arch-node__badge {
+  align-self: flex-end;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--link);
+  color: var(--surface);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* SVG edges */
+.arch-edge {
+  fill: none;
+  stroke: var(--link);
+  stroke-width: 2;
+}
+.arch-edge--aggregate {
+  stroke: var(--accent);
+  stroke-dasharray: 7 5;
+}
+.arch-arrowhead { fill: var(--link); }
+.arch-arrowhead--agg { fill: var(--accent); }
+.arch-edge__label-bg {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.arch-edge__label {
+  fill: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+/* Nested graph inside a system node's modal */
+.arch-graph--nested {
+  min-height: 200px;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4) var(--space-2);
+  gap: clamp(28px, 5vw, 72px);
+  background: var(--panel);
+  border-radius: var(--radius-md);
+}
+.arch-graph--nested .arch-node { width: 180px; padding: var(--space-4); }
+
+/* Data / request flow row (still used by the Introduction page) */
 .arch-flow {
   display: flex;
   flex-wrap: wrap;
@@ -756,6 +857,7 @@ pre.codeblock code.hljs { display: block; padding: 0; background: transparent; c
   box-shadow: var(--shadow-xl);
   animation: modal-rise var(--motion-base) var(--ease-emphasized);
 }
+.modal--wide .modal__dialog { width: min(880px, 100%); }
 .modal__close {
   position: absolute;
   top: var(--space-4);
@@ -947,12 +1049,33 @@ body.modal-open { overflow: hidden; }
   .container { padding: 0 var(--space-5); }
   .site-header { padding: var(--space-3) var(--space-5); }
   .chapter-nav__link { max-width: 100%; flex: 1 1 100%; }
+  /* Node graph collapses to a vertical stack; SVG edges give way to arrows */
+  .arch-graph { flex-direction: column; align-items: stretch; min-height: 0; gap: 0; }
+  .arch-graph__svg, .arch-graph__labels { display: none; }
+  .arch-layer { gap: var(--space-4); }
+  .arch-node { width: 100%; }
+  .arch-graph--nested .arch-node { width: 100%; }
+  .arch-layer:not(:last-of-type)::after {
+    content: '↓';
+    align-self: center;
+    margin: var(--space-3) 0;
+    color: var(--link);
+    font-size: var(--text-lg);
+    font-weight: 700;
+  }
 }
 @media (max-width: 520px) {
   .toc-flyout__panel { width: 80vw; }
 }
 
 /* === 18. Accessibility guardrails ================================= */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip: rect(0 0 0 0); clip-path: inset(50%);
+  overflow: hidden; white-space: nowrap;
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

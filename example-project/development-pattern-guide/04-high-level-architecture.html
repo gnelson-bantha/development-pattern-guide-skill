@@ -54,61 +54,65 @@
         <p class="section-subhead">Click any component to expand its responsibilities and connections.</p>
       </header>
 
-      <div class="arch-grid">
-        <button class="arch-card" type="button" data-modal="arch-composition-root">
-          <span class="arch-card__icon" aria-hidden="true">⚙</span>
-          <span class="arch-card__title">Composition Root</span>
-          <span class="arch-card__desc">Registers every layer and starts the pipeline.</span>
-          <span class="arch-card__expand">Expand</span>
-        </button>
+      <div class="arch-graph" id="arch-main">
+        <div class="arch-layer">
+          <button class="arch-node" type="button" id="node-composition-root" data-modal="arch-composition-root">
+            <span class="arch-node__icon" aria-hidden="true">⚙</span>
+            <span class="arch-node__title">Composition Root</span>
+            <span class="arch-node__desc">Registers every layer and starts the pipeline.</span>
+            <span class="arch-node__expand">Expand</span>
+          </button>
+        </div>
 
-        <button class="arch-card" type="button" data-modal="arch-orchestration">
-          <span class="arch-card__icon" aria-hidden="true">◆</span>
-          <span class="arch-card__title">Orchestration Service</span>
-          <span class="arch-card__desc">Coordinates import, persist, and present.</span>
-          <span class="arch-card__expand">Expand</span>
-        </button>
+        <div class="arch-layer">
+          <button class="arch-node" type="button" id="node-orchestration" data-modal="arch-orchestration">
+            <span class="arch-node__icon" aria-hidden="true">◆</span>
+            <span class="arch-node__title">Orchestration Service</span>
+            <span class="arch-node__desc">Coordinates import, persist, and present.</span>
+            <span class="arch-node__expand">Expand</span>
+          </button>
+        </div>
 
-        <button class="arch-card" type="button" data-modal="arch-importer">
-          <span class="arch-card__icon" aria-hidden="true">▸</span>
-          <span class="arch-card__title">Source Importer</span>
-          <span class="arch-card__desc">Reads the external source into domain models.</span>
-          <span class="arch-card__expand">Expand</span>
-        </button>
+        <div class="arch-layer">
+          <button class="arch-node" type="button" id="node-importer" data-modal="arch-importer">
+            <span class="arch-node__icon" aria-hidden="true">▸</span>
+            <span class="arch-node__title">Source Importer</span>
+            <span class="arch-node__desc">Reads the external source into domain models.</span>
+            <span class="arch-node__expand">Expand</span>
+          </button>
+          <button class="arch-node arch-node--system" type="button" id="node-persistence-system" data-modal="arch-persistence-system">
+            <span class="arch-node__badge">System · 3 parts</span>
+            <span class="arch-node__icon" aria-hidden="true">▦</span>
+            <span class="arch-node__title">Persistence System</span>
+            <span class="arch-node__desc">Stores and retrieves records behind a small interface.</span>
+            <span class="arch-node__expand">Open system</span>
+          </button>
+        </div>
 
-        <button class="arch-card" type="button" data-modal="arch-repository">
-          <span class="arch-card__icon" aria-hidden="true">▦</span>
-          <span class="arch-card__title">Repository</span>
-          <span class="arch-card__desc">Hides persistence behind a small interface.</span>
-          <span class="arch-card__expand">Expand</span>
-        </button>
+        <div class="arch-layer">
+          <button class="arch-node" type="button" id="node-model" data-modal="arch-model">
+            <span class="arch-node__icon" aria-hidden="true">▤</span>
+            <span class="arch-node__title">Domain Model</span>
+            <span class="arch-node__desc">The record that flows through every layer.</span>
+            <span class="arch-node__expand">Expand</span>
+          </button>
+        </div>
 
-        <button class="arch-card" type="button" data-modal="arch-context">
-          <span class="arch-card__icon" aria-hidden="true">▥</span>
-          <span class="arch-card__title">Persistence Context</span>
-          <span class="arch-card__desc">Maps domain models onto a backing store.</span>
-          <span class="arch-card__expand">Expand</span>
-        </button>
-
-        <button class="arch-card" type="button" data-modal="arch-model">
-          <span class="arch-card__icon" aria-hidden="true">▤</span>
-          <span class="arch-card__title">Domain Model</span>
-          <span class="arch-card__desc">The record that flows through every layer.</span>
-          <span class="arch-card__expand">Expand</span>
-        </button>
+        <ul class="arch-edges" hidden>
+          <li data-from="node-composition-root" data-to="node-orchestration" data-label="builds &amp; runs"></li>
+          <li data-from="node-orchestration" data-to="node-importer" data-label="imports via"></li>
+          <li data-from="node-orchestration" data-to="node-persistence-system" data-label="persists via" data-aggregate></li>
+          <li data-from="node-importer" data-to="node-model" data-label="produces"></li>
+          <li data-from="node-persistence-system" data-to="node-model" data-label="stores" data-aggregate></li>
+        </ul>
       </div>
 
-      <div class="arch-flow" aria-label="Data flow">
-        <span class="arch-flow__node">Composition Root</span>
-        <span class="arch-flow__arrow" aria-hidden="true">→</span>
-        <span class="arch-flow__node">Orchestration Service</span>
-        <span class="arch-flow__arrow" aria-hidden="true">→</span>
-        <span class="arch-flow__node">Source Importer</span>
-        <span class="arch-flow__arrow" aria-hidden="true">→</span>
-        <span class="arch-flow__node">Repository</span>
-        <span class="arch-flow__arrow" aria-hidden="true">→</span>
-        <span class="arch-flow__node">Persistence Context</span>
-      </div>
+      <ul class="visually-hidden">
+        <li>The Composition Root builds and runs the Orchestration Service.</li>
+        <li>The Orchestration Service imports records via the Source Importer and persists them via the Persistence System.</li>
+        <li>The Source Importer produces the Domain Model; the Persistence System stores it.</li>
+        <li>Inside the Persistence System, the Repository delegates to the Persistence Context, which reads and writes the Backing Store.</li>
+      </ul>
     </section>
     <hr class="section-divider">
 
@@ -227,6 +231,65 @@
           Every other layer speaks in terms of this type.</p>
         <p>Connects to: every layer — it is produced, persisted, retrieved, and
           presented.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- System node modal: a nested graph of the persistence internals -->
+  <div class="modal modal--wide" id="arch-persistence-system" role="dialog" aria-modal="true" aria-labelledby="arch-persistence-system-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">System</p>
+      <h2 class="modal__title" id="arch-persistence-system-title">Persistence System</h2>
+      <div class="modal__body">
+        <p>In the main map the storage layers are collapsed into a single node so the
+          diagram stays readable. Inside, a repository delegates to a mapping context,
+          which reads and writes the underlying store.</p>
+        <div class="arch-graph arch-graph--nested" id="arch-persistence-graph">
+          <div class="arch-layer">
+            <button class="arch-node" type="button" id="node-repository" data-modal="arch-repository">
+              <span class="arch-node__icon" aria-hidden="true">▦</span>
+              <span class="arch-node__title">Repository</span>
+              <span class="arch-node__desc">Hides persistence behind a small interface.</span>
+              <span class="arch-node__expand">Expand</span>
+            </button>
+          </div>
+          <div class="arch-layer">
+            <button class="arch-node" type="button" id="node-context" data-modal="arch-context">
+              <span class="arch-node__icon" aria-hidden="true">▥</span>
+              <span class="arch-node__title">Persistence Context</span>
+              <span class="arch-node__desc">Maps domain models onto a backing store.</span>
+              <span class="arch-node__expand">Expand</span>
+            </button>
+          </div>
+          <div class="arch-layer">
+            <button class="arch-node" type="button" id="node-store" data-modal="arch-store">
+              <span class="arch-node__icon" aria-hidden="true">▣</span>
+              <span class="arch-node__title">Backing Store</span>
+              <span class="arch-node__desc">In-memory now, a real database later.</span>
+              <span class="arch-node__expand">Expand</span>
+            </button>
+          </div>
+          <ul class="arch-edges" hidden>
+            <li data-from="node-repository" data-to="node-context" data-label="delegates to"></li>
+            <li data-from="node-context" data-to="node-store" data-label="reads &amp; writes"></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="arch-store" role="dialog" aria-modal="true" aria-labelledby="arch-store-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">Component</p>
+      <h2 class="modal__title" id="arch-store-title">Backing Store</h2>
+      <div class="modal__body">
+        <p>The concrete storage the context talks to. The pattern keeps it swappable:
+          an in-memory provider for tests and local runs, a real database in
+          production. Nothing above this layer changes when it is replaced.</p>
       </div>
     </div>
   </div>
