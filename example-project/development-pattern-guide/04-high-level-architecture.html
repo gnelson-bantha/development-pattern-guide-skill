@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 4 · High Level Architecture</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 4</p>
+      <h1 class="chapter-title">High Level Architecture</h1>
+      <p class="chapter-subhead">The layers of the pipeline, the boundaries they own, and how data flows between them.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Big Picture</span>
+        <h2>System Map</h2>
+        <p class="section-subhead">Click any component to expand its responsibilities and connections.</p>
+      </header>
+
+      <div class="arch-grid">
+        <button class="arch-card" type="button" data-modal="arch-composition-root">
+          <span class="arch-card__icon" aria-hidden="true">⚙</span>
+          <span class="arch-card__title">Composition Root</span>
+          <span class="arch-card__desc">Registers every layer and starts the pipeline.</span>
+          <span class="arch-card__expand">Expand</span>
+        </button>
+
+        <button class="arch-card" type="button" data-modal="arch-orchestration">
+          <span class="arch-card__icon" aria-hidden="true">◆</span>
+          <span class="arch-card__title">Orchestration Service</span>
+          <span class="arch-card__desc">Coordinates import, persist, and present.</span>
+          <span class="arch-card__expand">Expand</span>
+        </button>
+
+        <button class="arch-card" type="button" data-modal="arch-importer">
+          <span class="arch-card__icon" aria-hidden="true">▸</span>
+          <span class="arch-card__title">Source Importer</span>
+          <span class="arch-card__desc">Reads the external source into domain models.</span>
+          <span class="arch-card__expand">Expand</span>
+        </button>
+
+        <button class="arch-card" type="button" data-modal="arch-repository">
+          <span class="arch-card__icon" aria-hidden="true">▦</span>
+          <span class="arch-card__title">Repository</span>
+          <span class="arch-card__desc">Hides persistence behind a small interface.</span>
+          <span class="arch-card__expand">Expand</span>
+        </button>
+
+        <button class="arch-card" type="button" data-modal="arch-context">
+          <span class="arch-card__icon" aria-hidden="true">▥</span>
+          <span class="arch-card__title">Persistence Context</span>
+          <span class="arch-card__desc">Maps domain models onto a backing store.</span>
+          <span class="arch-card__expand">Expand</span>
+        </button>
+
+        <button class="arch-card" type="button" data-modal="arch-model">
+          <span class="arch-card__icon" aria-hidden="true">▤</span>
+          <span class="arch-card__title">Domain Model</span>
+          <span class="arch-card__desc">The record that flows through every layer.</span>
+          <span class="arch-card__expand">Expand</span>
+        </button>
+      </div>
+
+      <div class="arch-flow" aria-label="Data flow">
+        <span class="arch-flow__node">Composition Root</span>
+        <span class="arch-flow__arrow" aria-hidden="true">→</span>
+        <span class="arch-flow__node">Orchestration Service</span>
+        <span class="arch-flow__arrow" aria-hidden="true">→</span>
+        <span class="arch-flow__node">Source Importer</span>
+        <span class="arch-flow__arrow" aria-hidden="true">→</span>
+        <span class="arch-flow__node">Repository</span>
+        <span class="arch-flow__arrow" aria-hidden="true">→</span>
+        <span class="arch-flow__node">Persistence Context</span>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Boundaries</span>
+        <h2>Dependencies point inward, toward interfaces</h2>
+        <p class="section-subhead">No layer references a concrete class in another layer.</p>
+      </header>
+      <div class="prose">
+        <p>The composition root is the only file that knows about concrete types.
+          Everywhere else, a layer accepts its collaborators as interfaces through
+          its constructor. The orchestration service holds an
+          <code>ISourceImporter</code> and an <code>IRepository</code>; it has no
+          idea that one reads a file and the other talks to a database. That
+          ignorance is the whole point — it is what lets you replace either side.</p>
+      </div>
+      <div class="callout">
+        <span class="callout-label">Rule of thumb</span>
+        <p>If a class uses the <code>new</code> keyword to build one of its
+          collaborators, that collaborator can no longer be swapped or tested in
+          isolation. Construct collaborators in the composition root instead.</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="arch-composition-root" role="dialog" aria-modal="true" aria-labelledby="arch-composition-root-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">Component</p>
+      <h2 class="modal__title" id="arch-composition-root-title">Composition Root</h2>
+      <div class="modal__body">
+        <p>The single startup file. It creates the container, registers each
+          interface against its implementation, builds the provider, and resolves
+          the orchestration service to begin the run. It is the only place where
+          concrete classes are named.</p>
+        <p>Connects to: the container (registration) and the orchestration service
+          (the one object it resolves and invokes).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="arch-orchestration" role="dialog" aria-modal="true" aria-labelledby="arch-orchestration-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">Component</p>
+      <h2 class="modal__title" id="arch-orchestration-title">Orchestration Service</h2>
+      <div class="modal__body">
+        <p>The coordinator. It asks the importer for records, hands them to the
+          repository to persist, reads them back, and presents them. It depends only
+          on the importer and repository interfaces.</p>
+        <p>Connects to: Source Importer and Repository, both as interfaces.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="arch-importer" role="dialog" aria-modal="true" aria-labelledby="arch-importer-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">Component</p>
+      <h2 class="modal__title" id="arch-importer-title">Source Importer</h2>
+      <div class="modal__body">
+        <p>The inbound adapter. It locates the external source, reads it, and
+          deserializes the contents into a list of domain models. It owns the
+          boundary between the outside world and the pipeline.</p>
+        <p>Connects to: the Domain Model (produces it) and the external source
+          (reads it).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="arch-repository" role="dialog" aria-modal="true" aria-labelledby="arch-repository-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">Component</p>
+      <h2 class="modal__title" id="arch-repository-title">Repository</h2>
+      <div class="modal__body">
+        <p>The persistence boundary. It exposes a handful of intention-revealing
+          methods — add, get all, count — and hides the storage mechanism entirely
+          behind its interface.</p>
+        <p>Connects to: the Persistence Context (delegates to it) and the Domain
+          Model (stores and returns it).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="arch-context" role="dialog" aria-modal="true" aria-labelledby="arch-context-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">Component</p>
+      <h2 class="modal__title" id="arch-context-title">Persistence Context</h2>
+      <div class="modal__body">
+        <p>The mapping layer. It declares which models are stored, configures their
+          keys and required fields, and exposes them as a queryable set backed by the
+          chosen provider.</p>
+        <p>Connects to: the backing store (in-memory or a real database) and the
+          Domain Model (maps it).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="arch-model" role="dialog" aria-modal="true" aria-labelledby="arch-model-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">Component</p>
+      <h2 class="modal__title" id="arch-model-title">Domain Model</h2>
+      <div class="modal__body">
+        <p>The shared currency of the pipeline. A plain data class with a few
+          properties and annotations that describe how it is serialized and stored.
+          Every other layer speaks in terms of this type.</p>
+        <p>Connects to: every layer — it is produced, persisted, retrieved, and
+          presented.</p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="03-quick-start.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 3</span>
+        <span class="chapter-nav__title">Quick Start</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="05-helpful-resources.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 5</span>
+        <span class="chapter-nav__title">Helpful Resources</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+  </footer>
+</body>
+</html>

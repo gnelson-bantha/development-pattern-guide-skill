@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 8 · The Repository &amp; Context</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 8</p>
+      <h1 class="chapter-title">The Repository &amp; Context</h1>
+      <p class="chapter-subhead">Hide storage behind a focused interface, backed by a mapping context the rest of the pipeline never sees.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>Describe storage as intentions</h2>
+        <p class="section-subhead">The interface names what callers want, not how it happens.</p>
+      </header>
+      <div class="prose">
+        <p>The repository interface exposes only the operations the pipeline actually
+          needs: add a batch of records, read them all back, and count them. None of
+          these methods reveal the storage technology, which keeps callers decoupled
+          from it.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public interface IRepository
+{
+    void AddRange(IEnumerable&lt;DataRecord&gt; records);
+
+    List&lt;DataRecord&gt; GetAll();
+
+    int Count();
+}</code></pre>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>Define the persistence context</h2>
+        <p class="section-subhead">The context maps the domain model onto a backing store.</p>
+      </header>
+      <div class="prose">
+        <p>The context declares which models are stored and configures how they are
+          mapped — the key and any required fields. It receives its options through
+          the constructor, so the composition root decides which provider backs it.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public class PersistenceContext(DbContextOptions&lt;PersistenceContext&gt; options)
+    : DbContext(options)
+{
+    public DbSet&lt;DataRecord&gt; Records =&gt; Set&lt;DataRecord&gt;();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity&lt;DataRecord&gt;(entity =&gt;
+        {
+            entity.HasKey(record =&gt; record.Id);
+            entity.Property(record =&gt; record.Name).IsRequired();
+            entity.Property(record =&gt; record.Label).IsRequired();
+        });
+    }
+}</code></pre>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 3</span>
+        <h2>Implement the repository over the context</h2>
+        <p class="section-subhead">A thin class that delegates to the context and nothing more.</p>
+      </header>
+      <div class="prose">
+        <p>The concrete repository receives the context through its constructor and
+          translates each interface method into a context operation. It stays
+          deliberately thin — the context does the real work, and the interface keeps
+          that fact hidden from callers.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public class Repository(PersistenceContext context) : IRepository
+{
+    public void AddRange(IEnumerable&lt;DataRecord&gt; records)
+    {
+        context.Records.AddRange(records);
+        context.SaveChanges();
+    }
+
+    public List&lt;DataRecord&gt; GetAll() =&gt; [.. context.Records];
+
+    public int Count() =&gt; context.Records.Count();
+}</code></pre>
+      <div class="callout">
+        <span class="callout-label">Two layers, one boundary</span>
+        <p>The context is an implementation detail of the repository. Callers depend
+          on <code>IRepository</code> only, so you can later replace the in-memory
+          provider with a real database — or even drop the ORM entirely — without
+          changing a single caller.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Takeaway</span>
+        <h2>Persistence, sealed off</h2>
+        <p class="section-subhead">The storage decision now lives behind one interface.</p>
+      </header>
+      <div class="prose">
+        <p>With the importer producing records and the repository storing them, only
+          one piece remains: the layer that drives the sequence. That is the
+          orchestration service, next.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="07-the-source-importer.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 7</span>
+        <span class="chapter-nav__title">The Source Importer</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="09-the-orchestration-service.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 9</span>
+        <span class="chapter-nav__title">The Orchestration Service</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+  </footer>
+</body>
+</html>

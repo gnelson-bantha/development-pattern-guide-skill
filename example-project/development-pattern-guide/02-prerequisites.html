@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 2 · Prerequisites</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 2</p>
+      <h1 class="chapter-title">Prerequisites</h1>
+      <p class="chapter-subhead">The tools, packages, and background knowledge you need before building the pipeline.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Toolchain</span>
+        <h2>What to install</h2>
+        <p class="section-subhead">A modern .NET SDK is all the tooling required.</p>
+      </header>
+      <div class="prose">
+        <ul>
+          <li><strong>.NET SDK 10 or later</strong> — provides the compiler, the
+            <code>dotnet</code> CLI, and the runtime that executes the pipeline.</li>
+          <li><strong>A code editor</strong> — any editor with C# support works;
+            one with language-server tooling makes navigating the layers easier.</li>
+          <li><strong>A terminal</strong> — you will build and run the project from
+            the command line with a single command.</li>
+        </ul>
+        <p>Confirm the SDK is available before continuing:</p>
+      </div>
+      <pre class="codeblock"><code class="language-bash">dotnet --version
+# Expect 10.x.x or newer</code></pre>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Packages</span>
+        <h2>Libraries the pattern relies on</h2>
+        <p class="section-subhead">Two small packages supply the container and the persistence layer.</p>
+      </header>
+      <div class="prose">
+        <p>The pipeline depends on two well-known libraries, both restored
+          automatically the first time you build:</p>
+        <ul>
+          <li><strong>A dependency-injection container</strong> — registers each
+            interface against its implementation and resolves the graph at startup.</li>
+          <li><strong>An object–relational mapper with an in-memory provider</strong>
+            — backs the repository so you can run the whole pipeline with no external
+            database to install.</li>
+        </ul>
+      </div>
+      <div class="callout">
+        <span class="callout-label">No database required</span>
+        <p>The in-memory provider keeps the Quick Start friction-free. Swapping it
+          for a real database is covered in <a href="11-extending-the-system.html">Extending the System</a>.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Assumed Skills</span>
+        <h2>What you should already know</h2>
+        <p class="section-subhead">Comfort with a few core ideas will make the chapters land faster.</p>
+      </header>
+      <div class="prose">
+        <ul>
+          <li>Reading and writing classes and interfaces in a typed language.</li>
+          <li>The basic idea of <strong>serialization</strong> — turning text such
+            as JSON into objects and back.</li>
+          <li>A first acquaintance with <strong>dependency injection</strong>: the
+            notion that an object receives its collaborators rather than creating
+            them. The pattern chapters reinforce this from the ground up.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="01-introduction.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 1</span>
+        <span class="chapter-nav__title">Introduction</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="03-quick-start.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 3</span>
+        <span class="chapter-nav__title">Quick Start</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+  </footer>
+</body>
+</html>

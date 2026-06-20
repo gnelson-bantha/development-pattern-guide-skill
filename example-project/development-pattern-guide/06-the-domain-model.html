@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 6 · The Domain Model</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 6</p>
+      <h1 class="chapter-title">The Domain Model</h1>
+      <p class="chapter-subhead">Define the single record that every layer produces, stores, retrieves, and presents.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Why First</span>
+        <h2>Start with the data</h2>
+        <p class="section-subhead">The model is the shared vocabulary the whole pipeline speaks.</p>
+      </header>
+      <div class="prose">
+        <p>Every layer in this pattern passes the same type around: the importer
+          produces it, the repository stores it, the orchestration service presents
+          it. Defining that type first gives the rest of the pipeline a stable shape
+          to build against. Keep it plain — a handful of properties with no behavior.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>Declare the properties</h2>
+        <p class="section-subhead">A unique key plus the fields you care about.</p>
+      </header>
+      <div class="prose">
+        <p>The model needs a stable identifier and the data fields it carries. Use a
+          globally unique identifier for the key so records never collide regardless
+          of where they came from.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public class DataRecord
+{
+    public Guid Id { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string Label { get; set; } = string.Empty;
+
+    public int Amount { get; set; }
+}</code></pre>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>Annotate for serialization and storage</h2>
+        <p class="section-subhead">Two sets of annotations let one class serve two layers.</p>
+      </header>
+      <div class="prose">
+        <p>Because this same class is both deserialized from the source and stored by
+          the persistence context, you annotate it for both jobs. Serialization
+          attributes map external field names onto properties; the persistence
+          attribute marks the key. The class stays a plain data holder — the
+          annotations only describe it.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+public class DataRecord
+{
+    [Key]
+    [JsonPropertyName("id")]
+    public Guid Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("label")]
+    public string Label { get; set; } = string.Empty;
+
+    [JsonPropertyName("amount")]
+    public int Amount { get; set; }
+}</code></pre>
+      <div class="callout">
+        <span class="callout-label">Design note</span>
+        <p>Sharing one class between the source and the store is convenient for a
+          small pipeline. As a system grows, many teams split this into a separate
+          transport model and storage entity. The pattern accommodates both — only
+          the importer and context would change.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Takeaway</span>
+        <h2>One type, every layer</h2>
+        <p class="section-subhead">The model is the contract the rest of the guide builds on.</p>
+      </header>
+      <div class="prose">
+        <p>With the record defined, each remaining layer has something concrete to
+          accept and return. Next you build the layer that brings these records into
+          the pipeline from the outside world.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="05-helpful-resources.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 5</span>
+        <span class="chapter-nav__title">Helpful Resources</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="07-the-source-importer.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 7</span>
+        <span class="chapter-nav__title">The Source Importer</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!-- TEMPLATE-GUIDE — delete this entire comment when generating a page
+  development-pattern-guide · HIGH LEVEL ARCHITECTURE — BODY FRAGMENT
+  ----------------------------------------------------------------------------
+  This is NOT a full page. It is the {{CHAPTER_BODY}} content for the
+  "High Level Architecture" chapter. Wrap it with page-template.html.
+
+  It demonstrates the required interactive architecture diagram:
+    • a grid of clickable cards (.arch-card) — one per core system/sub-system,
+    • each card opens a .modal dialog with deeper detail (data-modal -> id),
+    • an optional .arch-flow row that shows data/request flow.
+
+  Rules:
+    • Use GENERAL-PURPOSE names (e.g. "Data Model", "Request Router") — never the
+      source codebase's real class/system names.
+    • Every .arch-card[data-modal="X"] MUST have a matching <div class="modal" id="X">.
+    • Duplicate the card+modal pair per component. Keep ids unique & descriptive.
+  ----------------------------------------------------------------------------
+-->
+<section class="chapter-section">
+  <header class="section-heading">
+    <span class="eyebrow">The Big Picture</span>
+    <h2>System Map</h2>
+    <p class="section-subhead">Click any component to expand its responsibilities and connections.</p>
+  </header>
+
+  <div class="arch-grid">
+    <button class="arch-card" type="button" data-modal="arch-entrypoint">
+      <span class="arch-card__icon" aria-hidden="true">▸</span>
+      <span class="arch-card__title">Entry Point</span>
+      <span class="arch-card__desc">Receives external requests and hands them to the core.</span>
+      <span class="arch-card__expand">Expand</span>
+    </button>
+
+    <button class="arch-card" type="button" data-modal="arch-core">
+      <span class="arch-card__icon" aria-hidden="true">◆</span>
+      <span class="arch-card__title">Core System</span>
+      <span class="arch-card__desc">Coordinates the pattern's main responsibility.</span>
+      <span class="arch-card__expand">Expand</span>
+    </button>
+
+    <button class="arch-card" type="button" data-modal="arch-data">
+      <span class="arch-card__icon" aria-hidden="true">▤</span>
+      <span class="arch-card__title">Data Model</span>
+      <span class="arch-card__desc">Represents and persists the domain data.</span>
+      <span class="arch-card__expand">Expand</span>
+    </button>
+  </div>
+
+  <!-- Data / request flow -->
+  <div class="arch-flow" aria-label="Request flow">
+    <span class="arch-flow__node">Entry Point</span>
+    <span class="arch-flow__arrow" aria-hidden="true">→</span>
+    <span class="arch-flow__node">Core System</span>
+    <span class="arch-flow__arrow" aria-hidden="true">→</span>
+    <span class="arch-flow__node">Data Model</span>
+  </div>
+</section>
+
+<!-- ── Modals (one per card) ──────────────────────────────────────────── -->
+<div class="modal" id="arch-entrypoint" role="dialog" aria-modal="true" aria-labelledby="arch-entrypoint-title" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__dialog" role="document">
+    <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+    <p class="modal__eyebrow">Component</p>
+    <h2 class="modal__title" id="arch-entrypoint-title">Entry Point</h2>
+    <div class="modal__body">
+      <p>Describe what this component does, the boundary it owns, and how it
+         forwards work to the core system. Reference the general-purpose name only.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="arch-core" role="dialog" aria-modal="true" aria-labelledby="arch-core-title" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__dialog" role="document">
+    <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+    <p class="modal__eyebrow">Component</p>
+    <h2 class="modal__title" id="arch-core-title">Core System</h2>
+    <div class="modal__body">
+      <p>Explain the core responsibility, the sub-systems it owns, and the
+         relationships that make the pattern work.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="arch-data" role="dialog" aria-modal="true" aria-labelledby="arch-data-title" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__dialog" role="document">
+    <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+    <p class="modal__eyebrow">Component</p>
+    <h2 class="modal__title" id="arch-data-title">Data Model</h2>
+    <div class="modal__body">
+      <p>Explain the shape of the data, how it is created and persisted, and which
+         components depend on it.</p>
+    </div>
+  </div>
+</div>

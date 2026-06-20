@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 1 · Introduction</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 1</p>
+      <h1 class="chapter-title">Introduction</h1>
+      <p class="chapter-subhead">What the <em>Dependency-Injected Layered Data Pipeline</em> does at its core — and why it is worth learning.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Idea</span>
+        <h2>One direction, many layers</h2>
+        <p class="section-subhead">Data enters from an external source, is shaped, stored, and then presented.</p>
+      </header>
+      <div class="prose">
+        <p>Almost every program that does useful work follows the same shape: it
+          reads data from somewhere, turns it into objects it understands, keeps
+          those objects somewhere, and finally shows or returns them. The
+          <strong>Layered Data Pipeline</strong> pattern makes that shape explicit.
+          Instead of one tangled block of code, you build a short chain of small,
+          single-purpose layers, and you let data flow through them in one
+          direction.</p>
+        <p>In this guide you build the pipeline that this tutorial was derived from:
+          a small application that imports records from a file, persists them through
+          a storage layer, and prints them back out. Every layer is hidden behind an
+          <strong>interface</strong>, and a single startup file — the
+          <em>composition root</em> — wires the concrete pieces together using a
+          <strong>dependency injection</strong> container.</p>
+      </div>
+      <div class="arch-flow" aria-label="Pipeline flow">
+        <span class="arch-flow__node">Source Importer</span>
+        <span class="arch-flow__arrow" aria-hidden="true">→</span>
+        <span class="arch-flow__node">Repository</span>
+        <span class="arch-flow__arrow" aria-hidden="true">→</span>
+        <span class="arch-flow__node">Orchestration Service</span>
+        <span class="arch-flow__arrow" aria-hidden="true">→</span>
+        <span class="arch-flow__node">Output</span>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Pattern</span>
+        <h2>Five collaborators behind interfaces</h2>
+        <p class="section-subhead">Each layer owns exactly one responsibility and depends only on abstractions.</p>
+      </header>
+      <div class="card-grid">
+        <article class="info-card">
+          <span class="icon" aria-hidden="true">▤</span>
+          <h3>Domain Model</h3>
+          <p>A plain data class that represents one record as it travels through every layer.</p>
+        </article>
+        <article class="info-card">
+          <span class="icon" aria-hidden="true">▸</span>
+          <h3>Source Importer</h3>
+          <p>Reads the external source and deserializes it into a list of domain models.</p>
+        </article>
+        <article class="info-card">
+          <span class="icon" aria-hidden="true">▦</span>
+          <h3>Repository</h3>
+          <p>Hides how records are stored behind a tiny, intention-revealing interface.</p>
+        </article>
+        <article class="info-card">
+          <span class="icon" aria-hidden="true">◆</span>
+          <h3>Orchestration Service</h3>
+          <p>Coordinates import, persist, and present without knowing any concrete detail.</p>
+        </article>
+        <article class="info-card">
+          <span class="icon" aria-hidden="true">⚙</span>
+          <h3>Composition Root</h3>
+          <p>The single startup file that registers and connects every implementation.</p>
+        </article>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Why It Works</span>
+        <h2>Swappable parts, testable seams</h2>
+        <p class="section-subhead">Programming to interfaces is what makes the pattern reusable.</p>
+      </header>
+      <div class="prose">
+        <p>Because each layer depends on an interface rather than a concrete class,
+          you can replace any piece without touching the others. The file-based
+          importer can become a network importer. The in-memory store can become a
+          real database. The orchestration service never changes, because it only
+          ever talks to abstractions.</p>
+      </div>
+      <div class="callout">
+        <span class="callout-label">Key takeaway</span>
+        <p>The pattern is not about the file, the database, or the console. It is
+          about a one-way flow of data through small layers that depend only on
+          interfaces, assembled in one place.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__next" href="02-prerequisites.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 2</span>
+        <span class="chapter-nav__title">Prerequisites</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+  </footer>
+</body>
+</html>

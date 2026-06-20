@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/development-pattern-guide/guide.schema.json",
+  "title": "Generated Pattern Guide Manifest",
+  "description": "Machine-readable index written to <site>/guide.json. It is the source of truth for chapter order, navigation, the fly-out Table of Contents, and the active stylesheet. The skill reads it to add chapters or re-skin a guide, then regenerates every page's navigation from it.",
+  "type": "object",
+  "required": ["siteTitle", "stylesheet", "chapters"],
+  "properties": {
+    "siteTitle": { "type": "string", "description": "Short brand name shown in the header and hero." },
+    "guideTitle": { "type": "string", "description": "Hero heading on the Table of Contents page (may contain <em>)." },
+    "guideSubhead": { "type": "string", "description": "One-line description of what the guide teaches." },
+    "patternName": { "type": "string", "description": "General-purpose name of the derived development pattern (e.g. 'Singleton-backed Data Library')." },
+    "source": {
+      "type": "object",
+      "description": "What the guide was derived from. Names elsewhere in the guide are generalized and never expose these specifics.",
+      "properties": {
+        "kind": { "type": "string", "enum": ["local-repo", "repo-url", "local-folder"] },
+        "location": { "type": "string", "description": "Original path or URL the pattern was derived from." }
+      }
+    },
+    "stylesheet": {
+      "type": "string",
+      "description": "Filename of the active global stylesheet inside assets/ (default 'default-global.css', or a user-supplied 'style-guide.css').",
+      "default": "default-global.css"
+    },
+    "styleSource": {
+      "type": "string",
+      "description": "Optional path/URL of a user-supplied style-guide.html used to derive the look. Absent when the default style is used."
+    },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "chapters": {
+      "type": "array",
+      "description": "Ordered list of chapters. Order in this array IS the reading order and drives prev/next plus the TOC.",
+      "items": {
+        "type": "object",
+        "required": ["number", "title", "file", "type"],
+        "properties": {
+          "number": { "type": "integer", "minimum": 0, "description": "1-based display number; the Table of Contents page is typically 0 (index.html)." },
+          "title": { "type": "string" },
+          "subtitle": { "type": "string", "description": "Subhead shown under the title and as the TOC entry description." },
+          "file": { "type": "string", "description": "Relative HTML filename, e.g. '01-introduction.html'." },
+          "type": {
+            "type": "string",
+            "description": "Role of the chapter. Required chapters use their fixed type; pattern chapters use 'pattern'.",
+            "enum": [
+              "toc",
+              "introduction",
+              "prerequisites",
+              "quick-start",
+              "architecture",
+              "helpful-resources",
+              "pattern",
+              "extending",
+              "deployment"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "siteTitle": "Data Library Guide",
+      "guideTitle": "Build a <em>Singleton</em> Data Library",
+      "guideSubhead": "Learn the pattern behind a single shared database access point.",
+      "patternName": "Singleton-backed Data Library",
+      "source": { "kind": "local-repo", "location": "/Users/dev/projects/retail-db" },
+      "stylesheet": "default-global.css",
+      "generatedAt": "2026-01-01T00:00:00Z",
+      "chapters": [
+        { "number": 0, "title": "Contents", "subtitle": "Everything in this guide", "file": "index.html", "type": "toc" },
+        { "number": 1, "title": "Introduction", "subtitle": "What this pattern does at its core", "file": "01-introduction.html", "type": "introduction" },
+        { "number": 2, "title": "Prerequisites", "subtitle": "Tools, SDKs, and assumed skills", "file": "02-prerequisites.html", "type": "prerequisites" },
+        { "number": 3, "title": "Quick Start", "subtitle": "Running locally in under 10 minutes", "file": "03-quick-start.html", "type": "quick-start" },
+        { "number": 4, "title": "High Level Architecture", "subtitle": "Core systems and how they interact", "file": "04-high-level-architecture.html", "type": "architecture" },
+        { "number": 5, "title": "Helpful Resources", "subtitle": "Docs and references for the stack", "file": "05-helpful-resources.html", "type": "helpful-resources" },
+        { "number": 6, "title": "The Single Instance", "subtitle": "Guaranteeing one shared accessor", "file": "06-the-single-instance.html", "type": "pattern" },
+        { "number": 7, "title": "Extending the System", "subtitle": "Adding new modules and hooks", "file": "07-extending-the-system.html", "type": "extending" },
+        { "number": 8, "title": "Deployment", "subtitle": "Shipping the library to consumers", "file": "08-deployment.html", "type": "deployment" }
+      ]
+    }
+  ]
+}

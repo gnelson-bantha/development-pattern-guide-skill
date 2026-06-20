@@ -1,0 +1,26 @@
+{
+  "siteTitle": "Layered Pipeline Guide",
+  "guideTitle": "Build a <em>Dependency-Injected</em> Data Pipeline",
+  "guideSubhead": "Learn the layered pattern that turns an external data source into persisted, presentable records — one swappable interface at a time.",
+  "patternName": "Dependency-Injected Layered Data Pipeline",
+  "source": {
+    "kind": "local-folder",
+    "location": "./example-project"
+  },
+  "stylesheet": "default-global.css",
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "chapters": [
+    { "number": 0, "title": "Contents", "subtitle": "Everything in this guide", "file": "index.html", "type": "toc" },
+    { "number": 1, "title": "Introduction", "subtitle": "What the layered pipeline pattern does at its core", "file": "01-introduction.html", "type": "introduction" },
+    { "number": 2, "title": "Prerequisites", "subtitle": "Tools, runtime, packages, and assumed skills", "file": "02-prerequisites.html", "type": "prerequisites" },
+    { "number": 3, "title": "Quick Start", "subtitle": "Get a working pipeline running in under ten minutes", "file": "03-quick-start.html", "type": "quick-start" },
+    { "number": 4, "title": "High Level Architecture", "subtitle": "The layers, their boundaries, and how data flows", "file": "04-high-level-architecture.html", "type": "architecture" },
+    { "number": 5, "title": "Helpful Resources", "subtitle": "Curated docs for the runtime, DI, and persistence", "file": "05-helpful-resources.html", "type": "helpful-resources" },
+    { "number": 6, "title": "The Domain Model", "subtitle": "Define the record that flows through every layer", "file": "06-the-domain-model.html", "type": "pattern" },
+    { "number": 7, "title": "The Source Importer", "subtitle": "Read an external source and deserialize it into models", "file": "07-the-source-importer.html", "type": "pattern" },
+    { "number": 8, "title": "The Repository & Context", "subtitle": "Hide persistence behind a focused interface", "file": "08-the-repository-and-context.html", "type": "pattern" },
+    { "number": 9, "title": "The Orchestration Service", "subtitle": "Coordinate import, persist, and present in one place", "file": "09-the-orchestration-service.html", "type": "pattern" },
+    { "number": 10, "title": "The Composition Root", "subtitle": "Wire every layer together with a DI container", "file": "10-the-composition-root.html", "type": "pattern" },
+    { "number": 11, "title": "Extending the System", "subtitle": "Add sources, swap persistence, and grow the pipeline", "file": "11-extending-the-system.html", "type": "extending" }
+  ]
+}

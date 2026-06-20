@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 5 · Helpful Resources</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 5</p>
+      <h1 class="chapter-title">Helpful Resources</h1>
+      <p class="chapter-subhead">Authoritative documentation for the runtime, container, persistence, and serialization concepts behind the pattern.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Runtime &amp; Language</span>
+        <h2>The platform underneath</h2>
+        <p class="section-subhead">The SDK, CLI, and language features the pipeline uses.</p>
+      </header>
+      <div class="prose">
+        <ul>
+          <li><a href="https://learn.microsoft.com/dotnet/">.NET documentation</a> — the umbrella docs for the runtime and SDK.</li>
+          <li><a href="https://learn.microsoft.com/dotnet/core/tools/">.NET CLI reference</a> — every <code>dotnet</code> command, including <code>new</code>, <code>add package</code>, and <code>run</code>.</li>
+          <li><a href="https://learn.microsoft.com/dotnet/csharp/">C# language guide</a> — primary constructors, collection expressions, and the other features used in the examples.</li>
+        </ul>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Dependency Injection</span>
+        <h2>The container and the pattern</h2>
+        <p class="section-subhead">How registration, lifetimes, and resolution work.</p>
+      </header>
+      <div class="prose">
+        <ul>
+          <li><a href="https://learn.microsoft.com/dotnet/core/extensions/dependency-injection">Dependency injection in .NET</a> — the container used in the composition root.</li>
+          <li><a href="https://learn.microsoft.com/dotnet/core/extensions/dependency-injection-guidelines">DI guidelines</a> — registration patterns and pitfalls to avoid.</li>
+          <li><a href="https://martinfowler.com/articles/injection.html">Inversion of Control Containers and the Dependency Injection pattern</a> — the foundational essay on the idea.</li>
+        </ul>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Persistence</span>
+        <h2>The repository's backing store</h2>
+        <p class="section-subhead">The ORM, its providers, and the repository pattern itself.</p>
+      </header>
+      <div class="prose">
+        <ul>
+          <li><a href="https://learn.microsoft.com/ef/core/">Entity Framework Core</a> — the ORM behind the persistence context.</li>
+          <li><a href="https://learn.microsoft.com/ef/core/providers/in-memory/">The in-memory provider</a> — the zero-setup store used in the Quick Start.</li>
+          <li><a href="https://martinfowler.com/eaaCatalog/repository.html">Repository pattern</a> — the original catalog entry describing the abstraction.</li>
+        </ul>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Serialization</span>
+        <h2>Turning the source into models</h2>
+        <p class="section-subhead">The JSON library used by the importer.</p>
+      </header>
+      <div class="prose">
+        <ul>
+          <li><a href="https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/">System.Text.Json overview</a> — the serializer the importer relies on.</li>
+          <li><a href="https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/customize-properties">Customizing property names</a> — how the model's annotations map JSON fields to properties.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="04-high-level-architecture.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 4</span>
+        <span class="chapter-nav__title">High Level Architecture</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="06-the-domain-model.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 6</span>
+        <span class="chapter-nav__title">The Domain Model</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+  </footer>
+</body>
+</html>

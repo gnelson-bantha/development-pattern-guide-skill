@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 10 · The Composition Root</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 10</p>
+      <h1 class="chapter-title">The Composition Root</h1>
+      <p class="chapter-subhead">Assemble every layer in one place, let the container resolve the graph, and run the pipeline.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Concept</span>
+        <h2>One place that knows the concrete types</h2>
+        <p class="section-subhead">Every other file depends on interfaces; this one names implementations.</p>
+      </header>
+      <div class="prose">
+        <p>The <strong>composition root</strong> is the single location where the
+          abstract and the concrete meet. It maps each interface to the class that
+          implements it, then builds a provider that can hand out fully-constructed
+          objects on demand. Concentrating this knowledge in one file is what keeps
+          the rest of the codebase free of wiring.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>Register the layers</h2>
+        <p class="section-subhead">Bind each interface to its implementation, and configure the context's provider.</p>
+      </header>
+      <div class="prose">
+        <p>Create the container and register every layer. The persistence context is
+          configured here with the in-memory provider — the one place that decides
+          where data is stored. Each interface is bound to its concrete class with a
+          scoped lifetime.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">ServiceCollection services = new();
+
+services.AddDbContext&lt;PersistenceContext&gt;(options =&gt;
+    options.UseInMemoryDatabase("PipelineDb"));
+
+services.AddScoped&lt;IRepository, Repository&gt;();
+services.AddScoped&lt;ISourceImporter, SourceImporter&gt;();
+services.AddScoped&lt;IOrchestrationService, OrchestrationService&gt;();</code></pre>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>Build the provider and prepare the store</h2>
+        <p class="section-subhead">Resolve the context once to create a clean, deterministic database.</p>
+      </header>
+      <div class="prose">
+        <p>Build the provider, then reset the store so every run starts from a known
+          state. Resolving the context from the provider — rather than constructing
+          it — means it arrives already configured with the provider you registered.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using ServiceProvider provider = services.BuildServiceProvider();
+
+PersistenceContext context = provider.GetRequiredService&lt;PersistenceContext&gt;();
+context.Database.EnsureDeleted();
+context.Database.EnsureCreated();</code></pre>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 3</span>
+        <h2>Resolve the top of the graph and run</h2>
+        <p class="section-subhead">Ask for one object; the container constructs everything beneath it.</p>
+      </header>
+      <div class="prose">
+        <p>Request the orchestration service. The container sees it needs an importer
+          and a repository, that the repository needs the context, and constructs the
+          whole graph for you. Then call the single entry method to run the pipeline.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">IOrchestrationService service =
+    provider.GetRequiredService&lt;IOrchestrationService&gt;();
+
+service.ImportAndDisplay();</code></pre>
+      <div class="callout">
+        <span class="callout-label">The payoff</span>
+        <p>You asked for one object and received a fully-wired pipeline. To change
+          where data comes from or where it is stored, you edit only the registrations
+          in this file — never the layers themselves. That is the entire promise of
+          the pattern, delivered in a dozen lines.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 4</span>
+        <h2>The full entry point</h2>
+        <p class="section-subhead">Every piece, assembled top to bottom.</p>
+      </header>
+      <pre class="codeblock"><code class="language-csharp">ServiceCollection services = new();
+
+services.AddDbContext&lt;PersistenceContext&gt;(options =&gt;
+    options.UseInMemoryDatabase("PipelineDb"));
+
+services.AddScoped&lt;IRepository, Repository&gt;();
+services.AddScoped&lt;ISourceImporter, SourceImporter&gt;();
+services.AddScoped&lt;IOrchestrationService, OrchestrationService&gt;();
+
+using ServiceProvider provider = services.BuildServiceProvider();
+
+PersistenceContext context = provider.GetRequiredService&lt;PersistenceContext&gt;();
+context.Database.EnsureDeleted();
+context.Database.EnsureCreated();
+
+IOrchestrationService service =
+    provider.GetRequiredService&lt;IOrchestrationService&gt;();
+
+service.ImportAndDisplay();</code></pre>
+      <div class="prose">
+        <p>Run it with <code>dotnet run</code>. The records flow from source to store
+          to screen — and you have built the complete pattern, one swappable layer at
+          a time.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="09-the-orchestration-service.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 9</span>
+        <span class="chapter-nav__title">The Orchestration Service</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="11-extending-the-system.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 11</span>
+        <span class="chapter-nav__title">Extending the System</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+  </footer>
+</body>
+</html>

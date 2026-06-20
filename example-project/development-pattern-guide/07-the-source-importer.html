@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 7 · The Source Importer</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 7</p>
+      <h1 class="chapter-title">The Source Importer</h1>
+      <p class="chapter-subhead">Build the inbound layer that reads an external source and turns it into domain models.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>Define the interface first</h2>
+        <p class="section-subhead">The contract is what the rest of the pipeline depends on.</p>
+      </header>
+      <div class="prose">
+        <p>Every layer in this pattern begins as an interface. The importer's job is
+          narrow: produce a list of domain models. Nothing in the contract mentions
+          files, JSON, or any other source detail — that freedom is what lets you
+          swap implementations later.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public interface ISourceImporter
+{
+    List&lt;DataRecord&gt; LoadFromSource();
+}</code></pre>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>Locate the source reliably</h2>
+        <p class="section-subhead">Resolve the path relative to the running binaries, not the working directory.</p>
+      </header>
+      <div class="prose">
+        <p>The implementation reads a file that ships alongside the application. Build
+          the path from the binary's base directory so the program finds it no matter
+          where it is launched from.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public class SourceImporter : ISourceImporter
+{
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    private readonly string _sourcePath =
+        Path.Combine(AppContext.BaseDirectory, "Data", "source.json");
+
+    // LoadFromSource follows in the next step.
+}</code></pre>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 3</span>
+        <h2>Read, validate, and deserialize</h2>
+        <p class="section-subhead">Fail loudly if the source is missing; return an empty list if it is empty.</p>
+      </header>
+      <div class="prose">
+        <p>Guard the one boundary condition that matters — a missing source — with a
+          clear error. Deserialize the contents into domain models and return an
+          empty list rather than <code>null</code> so callers never have to null-check.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public List&lt;DataRecord&gt; LoadFromSource()
+{
+    if (!File.Exists(_sourcePath))
+    {
+        throw new FileNotFoundException(
+            $"Could not find the source data file at '{_sourcePath}'.",
+            _sourcePath);
+    }
+
+    string json = File.ReadAllText(_sourcePath);
+    List&lt;DataRecord&gt;? records =
+        JsonSerializer.Deserialize&lt;List&lt;DataRecord&gt;&gt;(json, SerializerOptions);
+
+    return records ?? [];
+}</code></pre>
+      <div class="callout">
+        <span class="callout-label">Boundary discipline</span>
+        <p>Validation belongs at the edges of the system. The importer is an edge, so
+          it checks that the source exists. Inner layers can then trust the data they
+          receive instead of re-checking it.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Takeaway</span>
+        <h2>An adapter behind a contract</h2>
+        <p class="section-subhead">The outside world is now isolated to one swappable class.</p>
+      </header>
+      <div class="prose">
+        <p>The importer is the only place that knows where data comes from. Replace it
+          with one that calls a network service or reads a different format, and the
+          rest of the pipeline is untouched. Next you build the layer that stores
+          these records.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="06-the-domain-model.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 6</span>
+        <span class="chapter-nav__title">The Domain Model</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="08-the-repository-and-context.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 8</span>
+        <span class="chapter-nav__title">The Repository &amp; Context</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+  </footer>
+</body>
+</html>
