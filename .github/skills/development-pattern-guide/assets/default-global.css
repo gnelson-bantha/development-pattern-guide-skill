@@ -428,7 +428,7 @@ hr.section-divider::after {
 }
 
 /* === 9. Prose ====================================================== */
-.prose { max-width: var(--measure); }
+.prose { max-width: none; }
 .prose p {
   margin-bottom: var(--space-5);
   font-family: var(--font-body);
@@ -441,7 +441,7 @@ hr.section-divider::after {
 .prose a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
 .prose a:hover { text-decoration-thickness: 2px; }
 .lede {
-  max-width: var(--measure);
+  max-width: none;
   margin-bottom: var(--space-5);
   font-family: var(--font-subheader);
   font-style: italic;
