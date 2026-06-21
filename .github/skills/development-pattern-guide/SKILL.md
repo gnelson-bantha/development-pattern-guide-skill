@@ -99,7 +99,7 @@ Determine:
   - **Consequences**: what becomes easy, what becomes hard, and the failure modes
     to watch for.
   This pattern, in this depth, is the spine of the tutorial.
-- **Setup/run path**: how someone installs deps and runs it locally (for Quick Start).
+- **Setup/run path**: how someone installs deps and runs it locally.
 
 Carry this research forward into the approval summary in Step 6 and into the
 chapter content; do not discard the depth once analysis is done.
@@ -122,29 +122,27 @@ Order is fixed for the framing chapters; pattern chapters sit in the middle.
 1. **Introduction** — what this pattern does at its core.
 2. **Prerequisites** — required tools, technologies, SDKs/packages, accounts or
    permissions, and assumed skills.
-3. **Quick Start Guide** — install deps and run locally; goal: up and running in
-   **under 10 minutes**, *no deep explanations yet*.
-4. **High Level Architecture** — core systems/sub-systems, major components, how
+3. **High Level Architecture** — core systems/sub-systems, major components, how
    they interact, and data/request flow. Rendered as an interactive **left-to-right
    node graph**: clickable **nodes → modal dialogs**, with directional **labeled
    edges** showing each relationship (see §7 and `architecture-template.html`).
-5. **Helpful Resources** — curated URLs for the stack and concepts used by the
-   pattern. Render these as a vertically stacked list of full-width cards using
-   `<div class="resource-list">` containing one `<div class="resource-card">` per
-   resource (each with a title, a short description, and the link). Do **not** use
-   the multi-column `.card-grid`; full-width stacked cards give long URLs room to
-   wrap so they never overflow.
 
 **Then the pattern chapters** — the "learn by doing" core. Break the pattern into
 logical chapters, one HTML page each, sequenced so a reader can build their own
 solution chapter-by-chapter.
 
-**Then, last:**
+**Then, last (in this order):**
 - **Extending the System** — how to add features/plugins/modules, where they hook
   into the pattern, and common extension patterns.
 - **Deployment** — *when applicable* (cloud-derived patterns): how to deploy. If the
   source uses **.NET Aspire**, explain deploying with Aspire (e.g. `azd` / Aspire
   manifests). Omit this chapter if deployment is not relevant to the pattern.
+- **Appendix: Additional Reading** — the **absolute last** chapter: curated URLs for
+  the stack and concepts used by the pattern. Render these as a vertically stacked
+  list of full-width cards using `<div class="resource-list">` containing one
+  `<div class="resource-card">` per resource (each with a title, a short description,
+  and the link). Do **not** use the multi-column `.card-grid`; full-width stacked
+  cards give long URLs room to wrap so they never overflow.
 
 Number chapters 1..N (the TOC page is number 0 / `index.html`). Name files
 `NN-slug.html` (zero-padded), e.g. `01-introduction.html`.
@@ -249,8 +247,9 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
    If you can't find `guide.json`, ask the user for the guide path.
 2. Read `guide.json`. Determine **placement** from the user (e.g. "after chapter 6",
    "before Deployment"); if unspecified, ask. Keep the required framing chapters
-   (TOC, Intro, Prerequisites, Quick Start, Architecture, Helpful Resources) at the
-   front and Extending/Deployment at the back unless the user says otherwise.
+   (TOC, Intro, Prerequisites, Architecture) at the front and
+   Extending/Deployment/Appendix: Additional Reading at the back (Additional
+   Reading absolute last) unless the user says otherwise.
 3. Create the new page from `page-template.html`, following §7 and using the existing
    guide's general-purpose naming.
 4. **Renumber** affected chapters and **rename files** if numbering shifts; update
@@ -342,16 +341,46 @@ When the user supplies their own style guide, **use it in place of the default**
     every title in **title case** (capitalize the principal words as for the
     title of a book or article), never sentence case or prose case. Put the
     descriptive, "what this covers" wording in the subhead.
-  - **Voice and prose style (engineering documentation).** The guide is technical
+  - **Voice and prose style (professional but casual).** The guide is technical
     documentation for an experienced software engineer, not marketing copy or an
-    essay. Write **direct, plain, engineering-driven prose** that describes the
-    technical facts: what the code does, how it works, why it is built this way,
-    and what the trade-offs are. Do **not** write sales-pitch, promotional, or
-    flowery language ("elegantly", "powerful", "seamless", "beautiful", "unlock",
-    "delightful", "robust and scalable", "best-in-class"). Do not address or
-    flatter the reader, build suspense, or use metaphors and grand framing. State
-    things plainly and precisely; assume the reader knows how to program. Prefer
-    concrete, specific statements over abstract or aspirational ones.
+    essay. Aim for the tone of a knowledgeable colleague explaining the code at a
+    whiteboard: **professional but casual, clear, and conversational**. Describe
+    the technical facts accurately, what the code does, how it works, why it is
+    built this way, and what the trade-offs are, but write them as natural,
+    readable prose rather than terse fragments.
+    - **Casual is allowed; hype is not.** You may address the reader directly as
+      "you" and use contractions ("it's", "you'll", "doesn't") where they read
+      naturally. Casual means warm and plain-spoken, *not* sales-pitch or
+      promotional. Still do **not** use flowery or marketing language
+      ("elegantly", "powerful", "seamless", "beautiful", "unlock", "delightful",
+      "robust and scalable", "best-in-class"), and don't flatter the reader,
+      build suspense, or lean on metaphors and grand framing. Casual adds warmth
+      and continuity, never hype.
+    - **Preserve the terminology.** Keep technical terms, code identifiers, type
+      and method names, and API names exact and unchanged; the relaxed tone never
+      softens or paraphrases precise vocabulary. Stay precise and assume the
+      reader knows how to program; prefer concrete, specific statements over
+      abstract or aspirational ones.
+    - **Avoid the obvious AI tells.** Vary sentence structure and length so the
+      prose doesn't fall into a repetitive template. Don't open every section the
+      same way or with formulaic scaffolding ("In this section, we will…", "Let's
+      dive into…"). Skip hollow summaries that just restate the heading,
+      reflexive hedging, and padding. Every sentence should carry real
+      information.
+- **Flow and transitions (no abrupt stops).** The guide should read as one
+  continuous lesson, not a stack of disconnected fragments. Connect the parts:
+  - **Within a chapter**, let each section lead into the next. When a section
+    builds on something just established, say so in a sentence rather than
+    restarting cold. Don't end a section on a bare code block or a single
+    abrupt line; add a sentence or two that interpret what the reader just saw
+    and point to what's coming.
+  - **Across chapters**, open each chapter by briefly orienting the reader
+    relative to what came before (what they've built or learned so far, and how
+    this chapter fits), and close it with a short bridge to the next chapter so
+    the hand-off feels deliberate. Keep these intros and outros to a sentence or
+    two; they should orient, not pad.
+  - The first chapter has nothing before it and the last has nothing after, so
+    skip the backward/forward bridge that doesn't apply.
 - **No em-dashes in generated content.** Do **not** use em-dashes (—) anywhere in
   the rendered guide — not in titles, subheads, prose, cards, modals, or captions.
   Rewrite using a comma, parentheses, a colon, or two separate sentences instead.
@@ -369,8 +398,8 @@ When the user supplies their own style guide, **use it in place of the default**
     not one of highlight.js's common languages, **omit the class** and auto-detection
     handles it. Always keep code **HTML-escaped** (`<`→`&lt;`, `&`→`&amp;`).
 - **Interactive cards.** Use `.info-card` (in `.card-grid`) for important callouts;
-  they have reactive hover effects already. For the **Helpful Resources** chapter,
-  use `.resource-card` inside `.resource-list` instead: these are full-width cards
+  they have reactive hover effects already. For the **Appendix: Additional Reading**
+  chapter, use `.resource-card` inside `.resource-list` instead: these are full-width cards
   stacked one per row, sized to the content column, so long URLs wrap inside the
   card rather than overflowing it. The architecture chapter uses clickable
   `.arch-node`s (graph nodes) → `.modal`.
@@ -430,12 +459,11 @@ Replace **all** of them; none may remain in a finished page.
 ├── index.html                         (Table of Contents)
 ├── 01-introduction.html
 ├── 02-prerequisites.html
-├── 03-quick-start.html
-├── 04-high-level-architecture.html    (node graph → modals)
-├── 05-helpful-resources.html
-├── 06..NN-<pattern chapters>.html     (learn-by-doing)
+├── 03-high-level-architecture.html    (node graph → modals)
+├── 04..NN-<pattern chapters>.html     (learn-by-doing)
 ├── <NN>-extending-the-system.html
 ├── <NN>-deployment.html               (when applicable)
+├── <NN>-appendix-additional-reading.html  (absolute last)
 ├── guide.json                         (manifest — source of truth)
 └── assets/
     ├── default-global.css  (or the user's style-guide.css)
