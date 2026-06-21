@@ -629,6 +629,47 @@ pre.codeblock code.hljs { display: block; padding: 0; background: transparent; c
 .info-card h3 { font-size: var(--text-sm); margin-bottom: var(--space-3); }
 .info-card p { font-size: var(--text-xs); line-height: var(--leading-normal); color: var(--ink); }
 
+/* Resource list: full-width cards stacked vertically (one per row) so long
+   URLs have the whole content column to wrap into and never overflow. */
+.resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: var(--space-6) 0;
+}
+.resource-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: var(--space-5);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--motion-base) var(--ease-emphasized),
+    box-shadow var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard);
+}
+.resource-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--link);
+}
+.resource-card h3 { font-size: var(--text-sm); margin-bottom: var(--space-2); }
+.resource-card p {
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--ink);
+  margin-bottom: var(--space-3);
+}
+.resource-card a {
+  font-size: var(--text-xs);
+  /* break long URLs onto multiple lines so they stay inside the card */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* === 12. Architecture node graph (nodes -> modals, SVG edges) ====== */
 .arch-graph {
   position: relative;

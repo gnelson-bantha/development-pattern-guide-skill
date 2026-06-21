@@ -19,15 +19,16 @@
         <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
         <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
         <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
-        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start Guide</span></a></li>
         <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
         <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
         <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
-        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
-        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
-        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
-        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
-        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-database-context.html"><span class="num">07</span><span>The Database Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-layer.html"><span class="num">08</span><span>The Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-import-service.html"><span class="num">09</span><span>The Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-orchestration-service.html"><span class="num">10</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="11-the-composition-root.html"><span class="num">11</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="12-extending-the-system.html"><span class="num">12</span><span>Extending the System</span></a></li>
       </ol>
     </div>
   </nav>
@@ -35,7 +36,7 @@
   <header class="site-header">
     <a class="site-brand" href="index.html">
       <span class="site-brand__mark">◆</span>
-      <span class="site-brand__name">Layered Pipeline Guide</span>
+      <span class="site-brand__name">Layered DI Guide</span>
     </a>
     <p class="site-header__meta">Pattern Tutorial</p>
   </header>
@@ -44,65 +45,24 @@
     <header class="chapter-header">
       <p class="chapter-eyebrow">Chapter 6</p>
       <h1 class="chapter-title">The Domain Model</h1>
-      <p class="chapter-subhead">Define the single record that every layer produces, stores, retrieves, and presents.</p>
+      <p class="chapter-subhead">The entity that flows through every layer, why it stays free of behavior, and how attributes connect it to storage and to the external format.</p>
     </header>
 
     <section class="chapter-section">
       <header class="section-heading">
-        <span class="eyebrow">Why First</span>
-        <h2>Start with the data</h2>
-        <p class="section-subhead">The model is the shared vocabulary the whole pipeline speaks.</p>
+        <span class="eyebrow">Definition</span>
+        <h2>A Plain Data Object</h2>
+        <p class="section-subhead">The shape of the entity and the fields it carries.</p>
       </header>
       <div class="prose">
-        <p>Every layer in this pattern passes the same type around: the importer
-          produces it, the repository stores it, the orchestration service presents
-          it. Defining that type first gives the rest of the pipeline a stable shape
-          to build against. Keep it plain — a handful of properties with no behavior.</p>
-      </div>
-    </section>
-    <hr class="section-divider">
-
-    <section class="chapter-section">
-      <header class="section-heading">
-        <span class="eyebrow">Step 1</span>
-        <h2>Declare the properties</h2>
-        <p class="section-subhead">A unique key plus the fields you care about.</p>
-      </header>
-      <div class="prose">
-        <p>The model needs a stable identifier and the data fields it carries. Use a
-          globally unique identifier for the key so records never collide regardless
-          of where they came from.</p>
-      </div>
-      <pre class="codeblock"><code class="language-csharp">public class DataRecord
-{
-    public Guid Id { get; set; }
-
-    public string Name { get; set; } = string.Empty;
-
-    public string Label { get; set; } = string.Empty;
-
-    public int Amount { get; set; }
-}</code></pre>
-    </section>
-    <hr class="section-divider">
-
-    <section class="chapter-section">
-      <header class="section-heading">
-        <span class="eyebrow">Step 2</span>
-        <h2>Annotate for serialization and storage</h2>
-        <p class="section-subhead">Two sets of annotations let one class serve two layers.</p>
-      </header>
-      <div class="prose">
-        <p>Because this same class is both deserialized from the source and stored by
-          the persistence context, you annotate it for both jobs. Serialization
-          attributes map external field names onto properties; the persistence
-          attribute marks the key. The class stays a plain data holder — the
-          annotations only describe it.</p>
+        <p>The domain model is the single data shape every other layer agrees on. The Import Service
+          produces it, the Persistence System stores it, and the Orchestration Service reads it. Because
+          it is shared by everything, it is kept deliberately small: fields and nothing else.</p>
       </div>
       <pre class="codeblock"><code class="language-csharp">using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-public class DataRecord
+public class Entity
 {
     [Key]
     [JsonPropertyName("id")]
@@ -111,32 +71,69 @@ public class DataRecord
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("label")]
-    public string Label { get; set; } = string.Empty;
+    [JsonPropertyName("category")]
+    public string Category { get; set; } = string.Empty;
 
-    [JsonPropertyName("amount")]
-    public int Amount { get; set; }
+    [JsonPropertyName("value")]
+    public int Value { get; set; }
 }</code></pre>
-      <div class="callout">
-        <span class="callout-label">Design note</span>
-        <p>Sharing one class between the source and the store is convenient for a
-          small pipeline. As a system grows, many teams split this into a separate
-          transport model and storage entity. The pattern accommodates both — only
-          the importer and context would change.</p>
-      </div>
     </section>
+
     <hr class="section-divider">
 
     <section class="chapter-section">
       <header class="section-heading">
-        <span class="eyebrow">Takeaway</span>
-        <h2>One type, every layer</h2>
-        <p class="section-subhead">The model is the contract the rest of the guide builds on.</p>
+        <span class="eyebrow">Design Choice</span>
+        <h2>No Behavior on the Entity</h2>
+        <p class="section-subhead">Why the model holds data and the services hold logic.</p>
       </header>
       <div class="prose">
-        <p>With the record defined, each remaining layer has something concrete to
-          accept and return. Next you build the layer that brings these records into
-          the pipeline from the outside world.</p>
+        <p>The entity has properties and no methods. This is a choice, not an oversight. If the model
+          carried persistence logic it would depend on the ORM, and every layer that touches the model
+          would transitively depend on the ORM too, which defeats the separation the pattern exists to
+          create. If it carried import logic it would depend on the serializer. Keeping the model inert
+          means it can be referenced everywhere without dragging a dependency along with it.</p>
+        <p>The trade-off is that behavior has to live somewhere, and here it lives in the services. This
+          is the data-centric end of the design spectrum: the model is a transport record and the layers
+          around it own the rules. For a richer domain you might push invariants onto the model, but you
+          would then accept that the model is no longer dependency-free. For this pattern, the inert
+          model is what lets the same type cross every boundary cleanly.</p>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Attributes</span>
+        <h2>Two Mappings on One Type</h2>
+        <p class="section-subhead">How the entity serves both the store and the external format at once.</p>
+      </header>
+      <div class="prose">
+        <p>The model is annotated for two different systems. The <code>[Key]</code> attribute tells the
+          ORM which property is the primary key. The <code>[JsonPropertyName]</code> attributes tell the
+          serializer how each property maps to a field in the external source. One type carries both
+          contracts.</p>
+        <p>This is convenient and worth understanding as a deliberate compromise. The model is coupled to
+          two libraries through attributes, which keeps the example small. The cost is that the same class
+          now answers to both the database schema and the wire format, so a change to either can ripple
+          into the other. If those two concerns diverge, the clean move is to split into a separate
+          persistence entity and a separate transfer object and map between them in the Import Service.
+          Until they diverge, one annotated model is the smaller, clearer choice.</p>
+      </div>
+      <div class="card-grid">
+        <article class="info-card">
+          <h3 class="info-card__title">Key Attribute</h3>
+          <p class="info-card__body">Marks the identity property so the ORM can track, update, and de-duplicate the entity in the store.</p>
+        </article>
+        <article class="info-card">
+          <h3 class="info-card__title">Property Name Attribute</h3>
+          <p class="info-card__body">Binds an external field name to a property so the source format and the C# naming can differ without custom parsing.</p>
+        </article>
+        <article class="info-card">
+          <h3 class="info-card__title">Default Initializers</h3>
+          <p class="info-card__body">String properties default to empty rather than null, so a partially populated source never leaves a property in an invalid null state.</p>
+        </article>
       </div>
     </section>
   </main>
@@ -149,17 +146,17 @@ public class DataRecord
         <span class="chapter-nav__title">Helpful Resources</span>
       </span>
     </a>
-    <a class="chapter-nav__link chapter-nav__next" href="07-the-source-importer.html">
+    <a class="chapter-nav__link chapter-nav__next" href="07-the-database-context.html">
       <span class="chapter-nav__dir">Next →</span>
       <span class="chapter-nav__label">
         <span class="chapter-nav__num">Chapter 7</span>
-        <span class="chapter-nav__title">The Source Importer</span>
+        <span class="chapter-nav__title">The Database Context</span>
       </span>
     </a>
   </nav>
 
   <footer class="site-footer">
-    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+    <p class="site-footer__colophon">A development-pattern-guide tutorial · Layered Architecture with Dependency Injection</p>
   </footer>
 </body>
 </html>

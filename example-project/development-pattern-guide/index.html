@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Layered Pipeline Guide · Contents</title>
+  <title>Layered DI Guide · Contents</title>
   <link rel="stylesheet" href="assets/default-global.css">
   <script src="assets/guide.js" defer></script>
 </head>
@@ -18,15 +18,16 @@
         <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
         <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
         <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
-        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start Guide</span></a></li>
         <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
         <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
         <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
-        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
-        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
-        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
-        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
-        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-database-context.html"><span class="num">07</span><span>The Database Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-layer.html"><span class="num">08</span><span>The Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-import-service.html"><span class="num">09</span><span>The Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-orchestration-service.html"><span class="num">10</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="11-the-composition-root.html"><span class="num">11</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="12-extending-the-system.html"><span class="num">12</span><span>Extending the System</span></a></li>
       </ol>
     </div>
   </nav>
@@ -34,15 +35,15 @@
   <header class="site-header">
     <a class="site-brand" href="index.html">
       <span class="site-brand__mark">◆</span>
-      <span class="site-brand__name">Layered Pipeline Guide</span>
+      <span class="site-brand__name">Layered DI Guide</span>
     </a>
     <p class="site-header__meta">Pattern Tutorial</p>
   </header>
 
   <main id="main" class="container">
     <section class="toc-hero">
-      <h1>Build a <em>Dependency-Injected</em> Data Pipeline</h1>
-      <p class="subhead">Learn the layered pattern that turns an external data source into persisted, presentable records — one swappable interface at a time.</p>
+      <h1>Build a <em>Layered</em> Application with Dependency Injection</h1>
+      <p class="subhead">Learn the pattern behind a small data application: a domain model, a persistence layer hidden behind a repository, services that own the work, and one composition root that wires it all together.</p>
     </section>
 
     <ol class="toc-grid">
@@ -50,7 +51,7 @@
         <span class="toc-entry__num">01</span>
         <span class="toc-entry__body">
           <span class="toc-entry__title">Introduction</span>
-          <span class="toc-entry__sub">What the layered pipeline pattern does at its core.</span>
+          <span class="toc-entry__sub">What layered architecture with dependency injection does at its core.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
@@ -58,15 +59,15 @@
         <span class="toc-entry__num">02</span>
         <span class="toc-entry__body">
           <span class="toc-entry__title">Prerequisites</span>
-          <span class="toc-entry__sub">Tools, runtime, packages, and assumed skills.</span>
+          <span class="toc-entry__sub">The SDK, packages, and skills you need before you start.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
       <li><a class="toc-entry" href="03-quick-start.html">
         <span class="toc-entry__num">03</span>
         <span class="toc-entry__body">
-          <span class="toc-entry__title">Quick Start</span>
-          <span class="toc-entry__sub">Get a working pipeline running in under ten minutes.</span>
+          <span class="toc-entry__title">Quick Start Guide</span>
+          <span class="toc-entry__sub">Create, wire, and run a working layered app in under ten minutes.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
@@ -74,7 +75,7 @@
         <span class="toc-entry__num">04</span>
         <span class="toc-entry__body">
           <span class="toc-entry__title">High Level Architecture</span>
-          <span class="toc-entry__sub">The layers, their boundaries, and how data flows.</span>
+          <span class="toc-entry__sub">The layers, their boundaries, and how a request flows through them.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
@@ -82,7 +83,7 @@
         <span class="toc-entry__num">05</span>
         <span class="toc-entry__body">
           <span class="toc-entry__title">Helpful Resources</span>
-          <span class="toc-entry__sub">Curated docs for the runtime, DI, and persistence.</span>
+          <span class="toc-entry__sub">Documentation for the runtime, the ORM, and the DI container.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
@@ -90,47 +91,55 @@
         <span class="toc-entry__num">06</span>
         <span class="toc-entry__body">
           <span class="toc-entry__title">The Domain Model</span>
-          <span class="toc-entry__sub">Define the record that flows through every layer.</span>
+          <span class="toc-entry__sub">The entity that flows through every layer, and the attributes it carries.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
-      <li><a class="toc-entry" href="07-the-source-importer.html">
+      <li><a class="toc-entry" href="07-the-database-context.html">
         <span class="toc-entry__num">07</span>
         <span class="toc-entry__body">
-          <span class="toc-entry__title">The Source Importer</span>
-          <span class="toc-entry__sub">Read an external source and deserialize it into models.</span>
+          <span class="toc-entry__title">The Database Context</span>
+          <span class="toc-entry__sub">Mapping the entity to storage with an ORM context and a model configuration.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
-      <li><a class="toc-entry" href="08-the-repository-and-context.html">
+      <li><a class="toc-entry" href="08-the-repository-layer.html">
         <span class="toc-entry__num">08</span>
         <span class="toc-entry__body">
-          <span class="toc-entry__title">The Repository &amp; Context</span>
-          <span class="toc-entry__sub">Hide persistence behind a focused interface.</span>
+          <span class="toc-entry__title">The Repository Layer</span>
+          <span class="toc-entry__sub">A narrow contract that hides the ORM from everything above it.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
-      <li><a class="toc-entry" href="09-the-orchestration-service.html">
+      <li><a class="toc-entry" href="09-the-import-service.html">
         <span class="toc-entry__num">09</span>
         <span class="toc-entry__body">
-          <span class="toc-entry__title">The Orchestration Service</span>
-          <span class="toc-entry__sub">Coordinate import, persist, and present in one place.</span>
+          <span class="toc-entry__title">The Import Service</span>
+          <span class="toc-entry__sub">Reading external data, deserializing it, and turning it into entities.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
-      <li><a class="toc-entry" href="10-the-composition-root.html">
+      <li><a class="toc-entry" href="10-the-orchestration-service.html">
         <span class="toc-entry__num">10</span>
         <span class="toc-entry__body">
-          <span class="toc-entry__title">The Composition Root</span>
-          <span class="toc-entry__sub">Wire every layer together with a DI container.</span>
+          <span class="toc-entry__title">The Orchestration Service</span>
+          <span class="toc-entry__sub">Composing the lower layers into one end-to-end use case.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
-      <li><a class="toc-entry" href="11-extending-the-system.html">
+      <li><a class="toc-entry" href="11-the-composition-root.html">
         <span class="toc-entry__num">11</span>
         <span class="toc-entry__body">
+          <span class="toc-entry__title">The Composition Root</span>
+          <span class="toc-entry__sub">Registering every contract, building the provider, and running the app.</span>
+        </span>
+        <span class="toc-entry__arrow" aria-hidden="true">→</span>
+      </a></li>
+      <li><a class="toc-entry" href="12-extending-the-system.html">
+        <span class="toc-entry__num">12</span>
+        <span class="toc-entry__body">
           <span class="toc-entry__title">Extending the System</span>
-          <span class="toc-entry__sub">Add sources, swap persistence, and grow the pipeline.</span>
+          <span class="toc-entry__sub">Adding new entities, swapping implementations, and growing the layers.</span>
         </span>
         <span class="toc-entry__arrow" aria-hidden="true">→</span>
       </a></li>
@@ -138,7 +147,7 @@
   </main>
 
   <footer class="site-footer">
-    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+    <p class="site-footer__colophon">A development-pattern-guide tutorial · Layered Architecture with Dependency Injection</p>
   </footer>
 </body>
 </html>

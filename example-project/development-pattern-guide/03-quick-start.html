@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chapter 3 · Quick Start</title>
+  <title>Chapter 3 · Quick Start Guide</title>
   <link rel="stylesheet" href="assets/default-global.css">
   <script src="assets/vendor/highlight.min.js" defer></script>
   <script src="assets/guide.js" defer></script>
@@ -19,15 +19,16 @@
         <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
         <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
         <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
-        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start Guide</span></a></li>
         <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
         <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
         <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
-        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
-        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
-        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
-        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
-        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-database-context.html"><span class="num">07</span><span>The Database Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-layer.html"><span class="num">08</span><span>The Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-import-service.html"><span class="num">09</span><span>The Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-orchestration-service.html"><span class="num">10</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="11-the-composition-root.html"><span class="num">11</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="12-extending-the-system.html"><span class="num">12</span><span>Extending the System</span></a></li>
       </ol>
     </div>
   </nav>
@@ -35,7 +36,7 @@
   <header class="site-header">
     <a class="site-brand" href="index.html">
       <span class="site-brand__mark">◆</span>
-      <span class="site-brand__name">Layered Pipeline Guide</span>
+      <span class="site-brand__name">Layered DI Guide</span>
     </a>
     <p class="site-header__meta">Pattern Tutorial</p>
   </header>
@@ -43,104 +44,134 @@
   <main id="main" class="container">
     <header class="chapter-header">
       <p class="chapter-eyebrow">Chapter 3</p>
-      <h1 class="chapter-title">Quick Start</h1>
-      <p class="chapter-subhead">Stand up a minimal working pipeline and run it — explanations come later.</p>
+      <h1 class="chapter-title">Quick Start Guide</h1>
+      <p class="chapter-subhead">Build and run a working layered application end to end. Explanations come later; this chapter is about seeing it work.</p>
     </header>
 
     <section class="chapter-section">
       <header class="section-heading">
         <span class="eyebrow">Step 1</span>
-        <h2>Create the project</h2>
-        <p class="section-subhead">A single console application will host every layer.</p>
+        <h2>Create the Project</h2>
+        <p class="section-subhead">A console application and its two package references.</p>
       </header>
+      <pre class="codeblock"><code class="language-bash">dotnet new console -n LayeredApp
+cd LayeredApp
+dotnet add package Microsoft.EntityFrameworkCore.InMemory
+dotnet add package Microsoft.Extensions.DependencyInjection</code></pre>
       <div class="prose">
-        <p>Create a new console project and move into it:</p>
+        <p>This produces a project with an entry point and the two libraries the pattern needs. The
+          rest of the quick start adds one file per layer. Do not worry about why each file looks the
+          way it does yet; the chapters that follow take each one apart.</p>
       </div>
-      <pre class="codeblock"><code class="language-bash">dotnet new console -n DataPipeline
-cd DataPipeline</code></pre>
     </section>
+
     <hr class="section-divider">
 
     <section class="chapter-section">
       <header class="section-heading">
         <span class="eyebrow">Step 2</span>
-        <h2>Add the two packages</h2>
-        <p class="section-subhead">One for the container, one for in-memory persistence.</p>
+        <h2>Add the Layers</h2>
+        <p class="section-subhead">A model, a database context, a repository, and two services.</p>
       </header>
       <div class="prose">
-        <p>Add the dependency-injection container and the ORM's in-memory provider:</p>
+        <p>Create the following files. Each is the smallest version of its role; later chapters expand
+          on the reasoning.</p>
       </div>
-      <pre class="codeblock"><code class="language-bash">dotnet add package Microsoft.Extensions.DependencyInjection
-dotnet add package Microsoft.EntityFrameworkCore.InMemory</code></pre>
-      <div class="callout">
-        <span class="callout-label">Tip</span>
-        <p>The package versions should match your SDK's major version. If a build
-          warns about a mismatch, install the version that lines up with your runtime.</p>
-      </div>
+      <pre class="codeblock"><code class="language-csharp">// Entity.cs: the domain model
+public class Entity
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int Value { get; set; }
+}</code></pre>
+      <pre class="codeblock"><code class="language-csharp">// DataContext.cs: the ORM context
+using Microsoft.EntityFrameworkCore;
+
+public class DataContext(DbContextOptions&lt;DataContext&gt; options) : DbContext(options)
+{
+    public DbSet&lt;Entity&gt; Entities =&gt; Set&lt;Entity&gt;();
+}</code></pre>
+      <pre class="codeblock"><code class="language-csharp">// IRepository.cs and Repository.cs: the persistence boundary
+public interface IRepository
+{
+    void AddRange(IEnumerable&lt;Entity&gt; entities);
+    List&lt;Entity&gt; GetAll();
+}
+
+public class Repository(DataContext context) : IRepository
+{
+    public void AddRange(IEnumerable&lt;Entity&gt; entities)
+    {
+        context.Entities.AddRange(entities);
+        context.SaveChanges();
+    }
+
+    public List&lt;Entity&gt; GetAll() =&gt; [.. context.Entities];
+}</code></pre>
+      <pre class="codeblock"><code class="language-csharp">// IOrchestrationService.cs and OrchestrationService.cs: the use case
+public interface IOrchestrationService
+{
+    void Run();
+}
+
+public class OrchestrationService(IRepository repository) : IOrchestrationService
+{
+    public void Run()
+    {
+        repository.AddRange(
+        [
+            new Entity { Id = Guid.NewGuid(), Name = "First", Value = 10 },
+            new Entity { Id = Guid.NewGuid(), Name = "Second", Value = 20 },
+        ]);
+
+        foreach (Entity entity in repository.GetAll())
+        {
+            Console.WriteLine($"{entity.Name}: {entity.Value}");
+        }
+    }
+}</code></pre>
     </section>
+
     <hr class="section-divider">
 
     <section class="chapter-section">
       <header class="section-heading">
         <span class="eyebrow">Step 3</span>
-        <h2>Provide a data source</h2>
-        <p class="section-subhead">A small JSON file gives the importer something to read.</p>
+        <h2>Wire and Run</h2>
+        <p class="section-subhead">The composition root that registers the layers and starts the program.</p>
       </header>
       <div class="prose">
-        <p>Create <code>Data/source.json</code> with a couple of records, and make
-          sure it is copied next to the binaries on build:</p>
+        <p>Replace the generated <code>Program.cs</code> with the composition root. It registers each
+          interface against its implementation, builds the provider, creates the database, and resolves
+          the top-level service to run.</p>
       </div>
-      <pre class="codeblock"><code class="language-json">[
-  { "id": "11111111-1111-1111-1111-111111111111", "name": "First",  "label": "Alpha", "amount": 100 },
-  { "id": "22222222-2222-2222-2222-222222222222", "name": "Second", "label": "Beta",  "amount": 250 }
-]</code></pre>
-      <pre class="codeblock"><code class="language-xml">&lt;!-- in the .csproj --&gt;
-&lt;ItemGroup&gt;
-  &lt;None Update="Data/source.json"&gt;
-    &lt;CopyToOutputDirectory&gt;PreserveNewest&lt;/CopyToOutputDirectory&gt;
-  &lt;/None&gt;
-&lt;/ItemGroup&gt;</code></pre>
-    </section>
-    <hr class="section-divider">
+      <pre class="codeblock"><code class="language-csharp">// Program.cs: the composition root
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
-    <section class="chapter-section">
-      <header class="section-heading">
-        <span class="eyebrow">Step 4</span>
-        <h2>Wire the composition root</h2>
-        <p class="section-subhead">Register every layer, then ask the container for the orchestration service.</p>
-      </header>
-      <div class="prose">
-        <p>The entry point registers each interface against its implementation,
-          builds the provider, and runs the pipeline. The classes referenced here
-          are built one chapter at a time in the rest of the guide.</p>
-      </div>
-      <pre class="codeblock"><code class="language-csharp">ServiceCollection services = new();
+ServiceCollection services = new();
 
-services.AddDbContext&lt;PersistenceContext&gt;(options =&gt;
-    options.UseInMemoryDatabase("PipelineDb"));
+services.AddDbContext&lt;DataContext&gt;(options =&gt;
+    options.UseInMemoryDatabase("AppDb"));
 
 services.AddScoped&lt;IRepository, Repository&gt;();
-services.AddScoped&lt;ISourceImporter, SourceImporter&gt;();
 services.AddScoped&lt;IOrchestrationService, OrchestrationService&gt;();
 
 using ServiceProvider provider = services.BuildServiceProvider();
 
-IOrchestrationService service = provider.GetRequiredService&lt;IOrchestrationService&gt;();
-service.ImportAndDisplay();</code></pre>
-    </section>
-    <hr class="section-divider">
+DataContext context = provider.GetRequiredService&lt;DataContext&gt;();
+context.Database.EnsureCreated();
 
-    <section class="chapter-section">
-      <header class="section-heading">
-        <span class="eyebrow">Step 5</span>
-        <h2>Run it</h2>
-        <p class="section-subhead">One command builds, restores, and executes the pipeline.</p>
-      </header>
-      <pre class="codeblock"><code class="language-bash">dotnet run</code></pre>
+IOrchestrationService service = provider.GetRequiredService&lt;IOrchestrationService&gt;();
+service.Run();</code></pre>
+      <pre class="codeblock"><code class="language-bash">dotnet run
+# First: 10
+# Second: 20</code></pre>
       <div class="prose">
-        <p>You should see each imported record printed to the console. If you do,
-          the full pipeline is working end to end. The chapters that follow rebuild
-          each layer slowly so you understand exactly why it works.</p>
+        <p>If you see the two lines printed, the pattern is working: the composition root built the
+          object graph, injected the repository into the service, and the service drove the run without
+          ever constructing a dependency itself. The remaining chapters explain each layer and why it is
+          shaped this way.</p>
       </div>
     </section>
   </main>
@@ -163,7 +194,7 @@ service.ImportAndDisplay();</code></pre>
   </nav>
 
   <footer class="site-footer">
-    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+    <p class="site-footer__colophon">A development-pattern-guide tutorial · Layered Architecture with Dependency Injection</p>
   </footer>
 </body>
 </html>

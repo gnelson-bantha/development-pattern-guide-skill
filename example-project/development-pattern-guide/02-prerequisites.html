@@ -19,15 +19,16 @@
         <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
         <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
         <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
-        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start Guide</span></a></li>
         <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
         <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
         <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
-        <li><a class="toc-flyout__link" href="07-the-source-importer.html"><span class="num">07</span><span>The Source Importer</span></a></li>
-        <li><a class="toc-flyout__link" href="08-the-repository-and-context.html"><span class="num">08</span><span>The Repository &amp; Context</span></a></li>
-        <li><a class="toc-flyout__link" href="09-the-orchestration-service.html"><span class="num">09</span><span>The Orchestration Service</span></a></li>
-        <li><a class="toc-flyout__link" href="10-the-composition-root.html"><span class="num">10</span><span>The Composition Root</span></a></li>
-        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-database-context.html"><span class="num">07</span><span>The Database Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-layer.html"><span class="num">08</span><span>The Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-import-service.html"><span class="num">09</span><span>The Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-orchestration-service.html"><span class="num">10</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="11-the-composition-root.html"><span class="num">11</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="12-extending-the-system.html"><span class="num">12</span><span>Extending the System</span></a></li>
       </ol>
     </div>
   </nav>
@@ -35,7 +36,7 @@
   <header class="site-header">
     <a class="site-brand" href="index.html">
       <span class="site-brand__mark">◆</span>
-      <span class="site-brand__name">Layered Pipeline Guide</span>
+      <span class="site-brand__name">Layered DI Guide</span>
     </a>
     <p class="site-header__meta">Pattern Tutorial</p>
   </header>
@@ -44,71 +45,85 @@
     <header class="chapter-header">
       <p class="chapter-eyebrow">Chapter 2</p>
       <h1 class="chapter-title">Prerequisites</h1>
-      <p class="chapter-subhead">The tools, packages, and background knowledge you need before building the pipeline.</p>
+      <p class="chapter-subhead">The runtime, packages, and background knowledge assumed by the rest of the guide.</p>
     </header>
 
     <section class="chapter-section">
       <header class="section-heading">
         <span class="eyebrow">Toolchain</span>
-        <h2>What to install</h2>
-        <p class="section-subhead">A modern .NET SDK is all the tooling required.</p>
+        <h2>Runtime and SDK</h2>
+        <p class="section-subhead">What you install to build and run the project.</p>
       </header>
       <div class="prose">
-        <ul>
-          <li><strong>.NET SDK 10 or later</strong> — provides the compiler, the
-            <code>dotnet</code> CLI, and the runtime that executes the pipeline.</li>
-          <li><strong>A code editor</strong> — any editor with C# support works;
-            one with language-server tooling makes navigating the layers easier.</li>
-          <li><strong>A terminal</strong> — you will build and run the project from
-            the command line with a single command.</li>
-        </ul>
-        <p>Confirm the SDK is available before continuing:</p>
+        <p>The pattern is language-agnostic, but this guide implements it in C# on a current .NET SDK,
+          because the platform ships a dependency injection container and an ORM that make the pattern
+          concrete with very little ceremony. Install a recent .NET SDK and confirm it is on your path:</p>
       </div>
       <pre class="codeblock"><code class="language-bash">dotnet --version
-# Expect 10.x.x or newer</code></pre>
+# 10.0.x or any current SDK</code></pre>
+      <div class="prose">
+        <p>The SDK includes the compiler, the package manager, and the <code>dotnet</code> command used
+          to create, restore, build, and run the project. No IDE is required; a text editor and a
+          terminal are enough.</p>
+      </div>
     </section>
+
     <hr class="section-divider">
 
     <section class="chapter-section">
       <header class="section-heading">
-        <span class="eyebrow">Packages</span>
-        <h2>Libraries the pattern relies on</h2>
-        <p class="section-subhead">Two small packages supply the container and the persistence layer.</p>
+        <span class="eyebrow">Dependencies</span>
+        <h2>Packages</h2>
+        <p class="section-subhead">The two libraries that supply the ORM and the DI container.</p>
       </header>
       <div class="prose">
-        <p>The pipeline depends on two well-known libraries, both restored
-          automatically the first time you build:</p>
-        <ul>
-          <li><strong>A dependency-injection container</strong> — registers each
-            interface against its implementation and resolves the graph at startup.</li>
-          <li><strong>An object–relational mapper with an in-memory provider</strong>
-            — backs the repository so you can run the whole pipeline with no external
-            database to install.</li>
-        </ul>
+        <p>The pattern relies on two external libraries. The first is an ORM with an in-memory provider,
+          which lets you store and query entities without standing up a real database. The second is a
+          dependency injection container, which holds the registrations and constructs the object graph.</p>
       </div>
-      <div class="callout">
-        <span class="callout-label">No database required</span>
-        <p>The in-memory provider keeps the Quick Start friction-free. Swapping it
-          for a real database is covered in <a href="11-extending-the-system.html">Extending the System</a>.</p>
+      <pre class="codeblock"><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" /&gt;
+  &lt;PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+      <div class="prose">
+        <p>The in-memory provider is chosen deliberately for a tutorial: it removes setup so the focus
+          stays on the pattern. Because the repository hides the ORM behind an interface, swapping the
+          in-memory provider for a real database provider later is a one-line change in the composition
+          root, and no other layer is affected. That substitutability is the point of the pattern, and
+          you get to use it the first time you outgrow the in-memory store.</p>
       </div>
     </section>
+
     <hr class="section-divider">
 
     <section class="chapter-section">
       <header class="section-heading">
-        <span class="eyebrow">Assumed Skills</span>
-        <h2>What you should already know</h2>
-        <p class="section-subhead">Comfort with a few core ideas will make the chapters land faster.</p>
+        <span class="eyebrow">Assumed Knowledge</span>
+        <h2>Skills You Should Bring</h2>
+        <p class="section-subhead">What this guide does not stop to teach.</p>
       </header>
+      <div class="card-grid">
+        <article class="info-card">
+          <h3 class="info-card__title">Interfaces and Classes</h3>
+          <p class="info-card__body">You should be comfortable defining an interface and implementing it in a class. The pattern uses an interface at every layer boundary.</p>
+        </article>
+        <article class="info-card">
+          <h3 class="info-card__title">Constructors</h3>
+          <p class="info-card__body">Dependencies arrive through constructor parameters. You should understand how an object receives values when it is created.</p>
+        </article>
+        <article class="info-card">
+          <h3 class="info-card__title">Generics and Collections</h3>
+          <p class="info-card__body">Lists, enumerables, and a generic method or two appear throughout. You do not need to write generics, only to read them.</p>
+        </article>
+        <article class="info-card">
+          <h3 class="info-card__title">JSON and Serialization</h3>
+          <p class="info-card__body">The import layer reads JSON. A basic understanding of mapping JSON fields to object properties is enough.</p>
+        </article>
+      </div>
       <div class="prose">
-        <ul>
-          <li>Reading and writing classes and interfaces in a typed language.</li>
-          <li>The basic idea of <strong>serialization</strong> — turning text such
-            as JSON into objects and back.</li>
-          <li>A first acquaintance with <strong>dependency injection</strong>: the
-            notion that an object receives its collaborators rather than creating
-            them. The pattern chapters reinforce this from the ground up.</li>
-        </ul>
+        <p>You do not need prior experience with this specific ORM or DI container. Each is introduced
+          in the chapter where it first appears, with the reasoning behind every call rather than just
+          the call itself.</p>
       </div>
     </section>
   </main>
@@ -125,13 +140,13 @@
       <span class="chapter-nav__dir">Next →</span>
       <span class="chapter-nav__label">
         <span class="chapter-nav__num">Chapter 3</span>
-        <span class="chapter-nav__title">Quick Start</span>
+        <span class="chapter-nav__title">Quick Start Guide</span>
       </span>
     </a>
   </nav>
 
   <footer class="site-footer">
-    <p class="site-footer__colophon">Built with the development-pattern-guide skill · A pattern tutorial.</p>
+    <p class="site-footer__colophon">A development-pattern-guide tutorial · Layered Architecture with Dependency Injection</p>
   </footer>
 </body>
 </html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 12 · Extending the System</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start Guide</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-database-context.html"><span class="num">07</span><span>The Database Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-layer.html"><span class="num">08</span><span>The Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-import-service.html"><span class="num">09</span><span>The Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-orchestration-service.html"><span class="num">10</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="11-the-composition-root.html"><span class="num">11</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="12-extending-the-system.html"><span class="num">12</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered DI Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 12</p>
+      <h1 class="chapter-title">Extending the System</h1>
+      <p class="chapter-subhead">How the pattern grows: swapping an implementation, adding a new entity, and knowing when a layer is no longer worth its weight.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Substitution</span>
+        <h2>Replacing an Implementation</h2>
+        <p class="section-subhead">Changing how a layer works without touching its callers.</p>
+      </header>
+      <div class="prose">
+        <p>The most common extension is swapping one implementation for another. Because every caller
+          depends on an interface, you add a class that satisfies the interface and change the registration
+          in the composition root. Moving from a file source to an HTTP source is a new class and a
+          one-line registration change:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public class HttpImportService(HttpClient client) : IImportService
+{
+    public List&lt;Entity&gt; LoadFromSource()
+    {
+        string json = client.GetStringAsync("https://example/data").Result;
+        return JsonSerializer.Deserialize&lt;List&lt;Entity&gt;&gt;(json) ?? [];
+    }
+}</code></pre>
+      <pre class="codeblock"><code class="language-csharp">// In the composition root, swap one line:
+services.AddScoped&lt;IImportService, HttpImportService&gt;();</code></pre>
+      <div class="prose">
+        <p>The Orchestration Service is not recompiled in spirit and not edited at all, because it only ever
+          knew <code>IImportService</code>. The same move replaces the in-memory database with a real one by
+          changing the context options, and the repository above it is untouched. Substitution is the
+          dividend the interfaces have been paying into the whole guide.</p>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">New Entities</span>
+        <h2>Adding a Second Entity Type</h2>
+        <p class="section-subhead">Repeating the layer set for a new kind of data.</p>
+      </header>
+      <div class="prose">
+        <p>To persist a second kind of data, repeat the pattern for it: a new model, a new entity set on the
+          context, and a repository contract for it. The existing layers are not disturbed, because each new
+          piece plugs into the same seams.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public class OtherEntity
+{
+    public Guid Id { get; set; }
+    public string Label { get; set; } = string.Empty;
+}
+
+// On the context:
+public DbSet&lt;OtherEntity&gt; OtherEntities =&gt; Set&lt;OtherEntity&gt;();</code></pre>
+      <div class="prose">
+        <p>If you find yourself copying the repository almost verbatim for each new entity, that is the
+          signal to introduce a generic repository (<code>IRepository&lt;T&gt;</code>) so one implementation
+          serves every entity type. Reach for that generalization when the duplication is real, not before:
+          a generic abstraction written against a single entity is harder to read and earns nothing. The
+          pattern tolerates both the per-entity and the generic form; let the amount of repetition decide.</p>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Judgment</span>
+        <h2>Knowing When a Layer Earns Its Keep</h2>
+        <p class="section-subhead">Adding seams where substitution is plausible and removing them where it is not.</p>
+      </header>
+      <div class="prose">
+        <p>Every layer in this pattern is justified by a substitution that is plausible: a different data
+          source, a different store, a fake for testing. A layer that guards a substitution no one will ever
+          make is pure overhead, and the honest move is to delete it and call the concrete class directly.
+          The pattern is a tool for managing change, so apply it where change is expected and skip it where
+          it is not.</p>
+        <p>When you do add a layer, hold it to the standards the existing ones meet: define the interface
+          first, keep it expressed in domain terms, let the composition root own construction and lifetimes,
+          and validate input at the boundary where it enters. A new layer that follows those rules slots in
+          without friction. A new layer that breaks them, by leaking the ORM through the repository or
+          constructing its own dependencies, quietly erodes the separation the rest of the system depends
+          on.</p>
+      </div>
+      <div class="card-grid">
+        <article class="info-card">
+          <h3 class="info-card__title">Add at the Seam</h3>
+          <p class="info-card__body">New behavior enters by implementing an existing interface or adding a new one, never by editing an unrelated layer.</p>
+        </article>
+        <article class="info-card">
+          <h3 class="info-card__title">Register, Do Not Construct</h3>
+          <p class="info-card__body">Anything new is wired in the composition root, keeping the rest of the program free of concrete type names.</p>
+        </article>
+        <article class="info-card">
+          <h3 class="info-card__title">Delete Dead Seams</h3>
+          <p class="info-card__body">A layer protecting a substitution that will never happen is cost without benefit; removing it is as valid as adding one.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="11-the-composition-root.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 11</span>
+        <span class="chapter-nav__title">The Composition Root</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">A development-pattern-guide tutorial · Layered Architecture with Dependency Injection</p>
+  </footer>
+</body>
+</html>

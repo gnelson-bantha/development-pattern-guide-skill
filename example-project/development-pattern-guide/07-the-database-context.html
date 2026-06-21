@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 7 · The Database Context</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start Guide</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
+        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="07-the-database-context.html"><span class="num">07</span><span>The Database Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-the-repository-layer.html"><span class="num">08</span><span>The Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-the-import-service.html"><span class="num">09</span><span>The Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-the-orchestration-service.html"><span class="num">10</span><span>The Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="11-the-composition-root.html"><span class="num">11</span><span>The Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="12-extending-the-system.html"><span class="num">12</span><span>Extending the System</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered DI Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 7</p>
+      <h1 class="chapter-title">The Database Context</h1>
+      <p class="chapter-subhead">The ORM's view of the store: which entities it persists, how they map to tables, and why its options arrive from outside.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Definition</span>
+        <h2>The Context and Its Entity Set</h2>
+        <p class="section-subhead">Declaring what is persisted.</p>
+      </header>
+      <div class="prose">
+        <p>The database context is the ORM's session with the store. It exposes one entity set per
+          persisted type and, when asked, translates operations on those sets into store commands. For a
+          single entity it is short:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using Microsoft.EntityFrameworkCore;
+
+public class DataContext(DbContextOptions&lt;DataContext&gt; options) : DbContext(options)
+{
+    public DbSet&lt;Entity&gt; Entities =&gt; Set&lt;Entity&gt;();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity&lt;Entity&gt;(entity =&gt;
+        {
+            entity.HasKey(e =&gt; e.Id);
+            entity.Property(e =&gt; e.Name).IsRequired();
+            entity.Property(e =&gt; e.Category).IsRequired();
+        });
+    }
+}</code></pre>
+    </section>
+
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Injection</span>
+        <h2>Options Passed Through the Constructor</h2>
+        <p class="section-subhead">Why the context does not choose its own provider.</p>
+      </header>
+      <div class="prose">
+        <p>The constructor takes a <code>DbContextOptions</code> and passes it to the base class. The
+          context never decides which database provider it uses or what the connection looks like. That
+          decision is made in the Composition Root and handed in. This is the same dependency injection
+          rule the rest of the pattern follows, applied to the persistence layer: the context receives
+          its configuration rather than constructing it.</p>
+        <p>The payoff is direct. The same context class runs against an in-memory provider in a test and a
+          real database in production, because the provider is in the options, not in the class. Nothing
+          in the context changes when the store changes. If the context picked its own provider, you would
+          have to edit it for every environment, and you could not point a test at a throwaway store
+          without touching production code.</p>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Configuration</span>
+        <h2>Model Configuration in One Place</h2>
+        <p class="section-subhead">Centralizing the mapping rules the store must enforce.</p>
+      </header>
+      <div class="prose">
+        <p>The <code>OnModelCreating</code> override is where mapping rules that the store should enforce
+          live: the primary key, which columns are required, and any constraints. The entity already
+          carries a <code>[Key]</code> attribute, so the explicit <code>HasKey</code> here is redundant
+          for the key itself; it is shown to make the point that the context is the single place to put
+          configuration the attributes cannot express, and to keep schema rules out of the model when you
+          prefer them gathered together.</p>
+        <p>There are two valid styles: attributes on the model, or fluent configuration in the context.
+          Attributes keep the rule next to the property; fluent configuration keeps all rules in one file
+          and avoids coupling the model to the ORM. The pattern tolerates either. The thing to avoid is
+          scattering the same rule across both, where the two can disagree.</p>
+      </div>
+      <div class="card-grid">
+        <article class="info-card">
+          <h3 class="info-card__title">Entity Set</h3>
+          <p class="info-card__body">Each <code>DbSet</code> is a queryable, trackable collection of one entity type. Adding a new persisted type means adding one set.</p>
+        </article>
+        <article class="info-card">
+          <h3 class="info-card__title">Change Tracking</h3>
+          <p class="info-card__body">The context records the entities it has seen so that a later save knows which rows to insert or update. The repository above it triggers that save.</p>
+        </article>
+        <article class="info-card">
+          <h3 class="info-card__title">Provider Independence</h3>
+          <p class="info-card__body">Because the provider lives in the injected options, the context's code is identical across in-memory, local, and production stores.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="06-the-domain-model.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 6</span>
+        <span class="chapter-nav__title">The Domain Model</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="08-the-repository-layer.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 8</span>
+        <span class="chapter-nav__title">The Repository Layer</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">A development-pattern-guide tutorial · Layered Architecture with Dependency Injection</p>
+  </footer>
+</body>
+</html>
