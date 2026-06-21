@@ -30,7 +30,8 @@ jobs:
       - name: Stage site (example)
         run: |
           mkdir -p _site
-          cp -R example-project/development-pattern-guide/* _site/example-output
+          mkdir -p _site/example
+          cp -R example-project/development-pattern-guide/* _site/example
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
