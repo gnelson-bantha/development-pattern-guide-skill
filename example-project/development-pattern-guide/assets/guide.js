@@ -298,18 +298,49 @@
         var ofrac = outIdx[fromId] / (outCount[fromId] + 1);
         var ifrac = inIdx[toId] / (inCount[toId] + 1);
 
-        var sx = fr.right - gr.left;
-        var sy = fr.top - gr.top + fr.height * ofrac;
-        var tx = tr.left - gr.left;
-        var ty = tr.top - gr.top + tr.height * ifrac;
+        /* Decide orientation from centre-to-centre offset: when nodes are stacked
+           vertically (e.g. agents inside one layer) the default right->left routing
+           twists the curve under the cards, so route same-side-to-same-side. */
+        var dxCenters = (tr.left + tr.right) / 2 - (fr.left + fr.right) / 2;
+        var dyCenters = (tr.top + tr.bottom) / 2 - (fr.top + fr.bottom) / 2;
+        var vertical = Math.abs(dyCenters) > Math.abs(dxCenters);
 
-        var dx = Math.max(40, Math.abs(tx - sx) * 0.5);
-        var span = Math.abs(layerIndexOf(to) - layerIndexOf(from));
-        /* bow skip-layer edges away from the mid line so they clear inner nodes */
-        var bow = span > 1 ? (span - 1) * 46 : 0;
-        var sign = (sy + ty) / 2 < gr.height / 2 ? -1 : 1;
-        var c1x = sx + dx, c1y = sy + bow * sign;
-        var c2x = tx - dx, c2y = ty + bow * sign;
+        var sx, sy, tx, ty, c1x, c1y, c2x, c2y;
+        var maxLabelWidth;
+        if (vertical) {
+          /* Forward (downward) edges hug the right side; feedback (upward) edges
+             hug the left side. Both endpoints share a side, and the control
+             points bow outward so the line never crosses under a node. */
+          var vbow = Math.max(30, Math.abs(dyCenters) * 0.22);
+          sy = fr.top - gr.top + fr.height * ofrac;
+          ty = tr.top - gr.top + tr.height * ifrac;
+          if (dyCenters >= 0) {
+            sx = fr.right - gr.left;
+            tx = tr.right - gr.left;
+            c1x = sx + vbow; c1y = sy;
+            c2x = tx + vbow; c2y = ty;
+          } else {
+            sx = fr.left - gr.left;
+            tx = tr.left - gr.left;
+            c1x = sx - vbow; c1y = sy;
+            c2x = tx - vbow; c2y = ty;
+          }
+          maxLabelWidth = 104;
+        } else {
+          sx = fr.right - gr.left;
+          sy = fr.top - gr.top + fr.height * ofrac;
+          tx = tr.left - gr.left;
+          ty = tr.top - gr.top + tr.height * ifrac;
+
+          var dx = Math.max(40, Math.abs(tx - sx) * 0.5);
+          var span = Math.abs(layerIndexOf(to) - layerIndexOf(from));
+          /* bow skip-layer edges away from the mid line so they clear inner nodes */
+          var bow = span > 1 ? (span - 1) * 46 : 0;
+          var sign = (sy + ty) / 2 < gr.height / 2 ? -1 : 1;
+          c1x = sx + dx; c1y = sy + bow * sign;
+          c2x = tx - dx; c2y = ty + bow * sign;
+          maxLabelWidth = Math.max(48, Math.abs(tx - sx) - 16);
+        }
 
         var d = "M" + sx + "," + sy +
                 " C" + c1x + "," + c1y + " " + c2x + "," + c2y + " " + tx + "," + ty;
@@ -326,11 +357,9 @@
             var u = 0.5, m = 1 - u;
             var lx = m*m*m*sx + 3*m*m*u*c1x + 3*m*u*u*c2x + u*u*u*tx;
             var ly = m*m*m*sy + 3*m*m*u*c1y + 3*m*u*u*c2y + u*u*u*ty;
-            /* Keep the label no wider than the horizontal gap between the two
-               nodes so it never spills over a node or another edge's text.
-               Wrap the words onto as many lines as needed to fit that width. */
-            var gap = Math.abs(tx - sx);
-            var maxLabelWidth = Math.max(48, gap - 16);
+            /* Keep the label no wider than the gap computed for this edge's
+               orientation so it never spills over a node or another edge's
+               text. Wrap the words onto as many lines as needed to fit. */
             var text = svgEl("text", {
               x: lx, "class": "arch-edge__label",
               "text-anchor": "middle", "dominant-baseline": "middle"

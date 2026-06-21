@@ -754,7 +754,7 @@ pre.codeblock code.hljs { display: block; padding: 0; background: transparent; c
 /* === 11. Interactive cards ========================================= */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: var(--space-4);
   margin: var(--space-6) 0;
 }
