@@ -394,6 +394,77 @@
   }
 
 
+  /* ── Code blocks (macOS titlebar + Copy button) ─────────────── */
+  function copyText(text, btn) {
+    function flash() {
+      btn.textContent = "Copied!";
+      btn.classList.add("is-copied");
+      clearTimeout(btn._copyTimer);
+      btn._copyTimer = setTimeout(function () {
+        btn.textContent = "Copy";
+        btn.classList.remove("is-copied");
+      }, 1600);
+    }
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "absolute";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        flash();
+      } catch (err) {
+        /* clipboard unavailable — leave the label unchanged */
+      }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(flash, fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  function decorateCodeblock(pre) {
+    var parent = pre.parentNode;
+    if (parent && parent.classList && parent.classList.contains("codeblock-wrap")) return;
+
+    var wrap = document.createElement("div");
+    wrap.className = "codeblock-wrap";
+
+    var bar = document.createElement("div");
+    bar.className = "codeblock-titlebar";
+
+    var dots = document.createElement("span");
+    dots.className = "codeblock-dots";
+    dots.setAttribute("aria-hidden", "true");
+    dots.innerHTML = "<span></span><span></span><span></span>";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "codeblock-copy";
+    btn.textContent = "Copy";
+    btn.addEventListener("click", function () {
+      var code = pre.querySelector("code");
+      copyText(code ? code.textContent : pre.textContent, btn);
+    });
+
+    bar.appendChild(dots);
+    bar.appendChild(btn);
+
+    parent.insertBefore(wrap, pre);
+    wrap.appendChild(bar);
+    wrap.appendChild(pre);
+  }
+
+  function initCodeblocks() {
+    var pres = document.querySelectorAll("pre.codeblock");
+    for (var i = 0; i < pres.length; i++) decorateCodeblock(pres[i]);
+  }
+
   /* ── Syntax highlighting (highlight.js, bundled & offline) ──── */
   function initHighlight() {
     if (typeof window.hljs === "undefined") return;
@@ -417,6 +488,7 @@
     markCurrent();
     initModals();
     initArchGraph();
+    initCodeblocks();
     initHighlight();
   });
 })();

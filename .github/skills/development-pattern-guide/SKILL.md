@@ -487,6 +487,12 @@ When the user supplies their own style guide, **use it in place of the default**
     `language-css`, `language-sql`, `language-yaml`. If the language is unknown or
     not one of highlight.js's common languages, **omit the class** and auto-detection
     handles it. Always keep code **HTML-escaped** (`<`→`&lt;`, `&`→`&amp;`).
+  - **Titlebar + copy + scroll (automatic).** Keep authoring plain
+    `<pre class="codeblock"><code>…</code></pre>`. At runtime `guide.js` wraps each
+    block in a macOS-style titlebar (traffic-light dots) with a right-aligned **Copy**
+    button that copies the code to the clipboard, and the block scrolls horizontally
+    (never word-wraps) when a line is wider than the column. Do not hand-author the
+    titlebar or wrapper markup.
 - **Interactive cards.** Use `.info-card` (in `.card-grid`) for important callouts;
   they have reactive hover effects already. For the **Appendix: Additional Reading**
   chapter, use `.resource-card` inside `.resource-list` instead: these are full-width cards
