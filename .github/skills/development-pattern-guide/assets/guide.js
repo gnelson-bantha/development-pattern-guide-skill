@@ -175,6 +175,28 @@
     return 0;
   }
 
+  /* Greedily wrap a label's words so no rendered line exceeds maxWidth (in the
+     graph's user space). Measures with the live SVG <text> node so it matches
+     the real font. Returns an array of line strings (at least one). */
+  function wrapLabel(textEl, label, maxWidth) {
+    var words = String(label).split(/\s+/);
+    var lines = [];
+    var current = "";
+    for (var w = 0; w < words.length; w++) {
+      var candidate = current ? current + " " + words[w] : words[w];
+      textEl.textContent = candidate;
+      if (current && textEl.getComputedTextLength() > maxWidth) {
+        lines.push(current);
+        current = words[w];
+      } else {
+        current = candidate;
+      }
+    }
+    if (current) lines.push(current);
+    textEl.textContent = "";
+    return lines.length ? lines : [String(label)];
+  }
+
   function drawGraph(graph) {
     try {
       var gr = graph.getBoundingClientRect();
@@ -268,12 +290,24 @@
             var u = 0.5, m = 1 - u;
             var lx = m*m*m*sx + 3*m*m*u*c1x + 3*m*u*u*c2x + u*u*u*tx;
             var ly = m*m*m*sy + 3*m*m*u*c1y + 3*m*u*u*c2y + u*u*u*ty;
+            /* Keep the label no wider than the horizontal gap between the two
+               nodes so it never spills over a node or another edge's text.
+               Wrap the words onto as many lines as needed to fit that width. */
+            var gap = Math.abs(tx - sx);
+            var maxLabelWidth = Math.max(48, gap - 16);
             var text = svgEl("text", {
-              x: lx, y: ly, "class": "arch-edge__label",
+              x: lx, "class": "arch-edge__label",
               "text-anchor": "middle", "dominant-baseline": "middle"
             });
-            text.textContent = label;
             labelSvg.appendChild(text);
+            var lines = wrapLabel(text, label, maxLabelWidth);
+            var lineH = 13;
+            var startY = ly - (lines.length - 1) * lineH / 2;
+            for (var ln = 0; ln < lines.length; ln++) {
+              var tspan = svgEl("tspan", { x: lx, y: startY + ln * lineH });
+              tspan.textContent = lines[ln];
+              text.appendChild(tspan);
+            }
             var bb = text.getBBox();
             var px = 6, py = 3;
             var bg = svgEl("rect", {

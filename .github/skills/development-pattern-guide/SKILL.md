@@ -54,7 +54,7 @@ provided to Create or Update style. See §6.
   - **Local folder source that is not a git repo** → default to that folder; if it
     is clearly read-only or not the user's project, ask.
 - Inside the guide folder, copy the skill assets into an `assets/` subfolder
-  (see §3, step 6). Never modify the originals in `SKILL_DIR`.
+  (see §3, step 7). Never modify the originals in `SKILL_DIR`.
 
 ---
 
@@ -72,21 +72,37 @@ Identify the source (repo path / repo URL / folder) and any `--style-guide` /
 ### Step 2 — Resolve the output location
 Apply §2. Confirm the final guide path with the user before generating files.
 
-### Step 3 — Research the codebase (do this thoroughly)
-Build a real understanding before writing anything. Prefer, in order: available
-code-intelligence tools → language servers → `glob`/`grep` → reading key files.
+### Step 3 — Research the codebase (do this thoroughly and deeply)
+Build a **deep** understanding before writing anything. Shallow, surface-level
+research produces a shallow guide, which is the failure mode to avoid. Read the
+actual implementation, not just file names and signatures. Prefer, in order:
+available code-intelligence tools → language servers → `glob`/`grep` → reading
+key files. Trace at least one real end-to-end path through the code yourself.
 Determine:
 - **Tech stack**: languages, frameworks, runtimes, package managers, notable
   libraries/SDKs, cloud services (note **.NET Aspire** if present — see §5/Deployment).
 - **High-level architecture**: the core systems, sub-systems, major components,
   and how they interact (entry points, control flow, data/request flow).
-- **Key classes/modules/services** and their responsibilities.
+- **Key classes/modules/services** and their responsibilities, including the
+  **contracts and invariants** they uphold (what must always be true) and the
+  **boundaries** between them (interfaces, abstractions, seams).
+- **Control and data flow specifics**: how a request/operation actually moves
+  through the system step by step, where state lives, and how errors, edge
+  cases, and failures are handled.
 - **The repeatable pattern**: the *core idea* that makes this design work and could
   be reused in another project (e.g. "a single shared accessor guards all access to
-  a resource"). This pattern is the spine of the tutorial.
+  a resource"). Capture it with real depth, not just a one-line label:
+  - **Motivation**: the problem the pattern solves and why a naive approach falls short.
+  - **Forces and trade-offs**: the competing concerns it balances, and what it
+    deliberately gives up to gain what it gains.
+  - **Structure**: the roles/participants in the pattern and how they collaborate.
+  - **Consequences**: what becomes easy, what becomes hard, and the failure modes
+    to watch for.
+  This pattern, in this depth, is the spine of the tutorial.
 - **Setup/run path**: how someone installs deps and runs it locally (for Quick Start).
 
-Report a short summary of the derived pattern to the user before generating.
+Carry this research forward into the approval summary in Step 6 and into the
+chapter content; do not discard the depth once analysis is done.
 
 ### Step 4 — Generalize all names (critical)
 The tutorial teaches a **reusable pattern**, so it must **not** use the source's
@@ -112,7 +128,12 @@ Order is fixed for the framing chapters; pattern chapters sit in the middle.
    they interact, and data/request flow. Rendered as an interactive **left-to-right
    node graph**: clickable **nodes → modal dialogs**, with directional **labeled
    edges** showing each relationship (see §7 and `architecture-template.html`).
-5. **Helpful Resources** — curated URLs for the stack and concepts used by the pattern.
+5. **Helpful Resources** — curated URLs for the stack and concepts used by the
+   pattern. Render these as a vertically stacked list of full-width cards using
+   `<div class="resource-list">` containing one `<div class="resource-card">` per
+   resource (each with a title, a short description, and the link). Do **not** use
+   the multi-column `.card-grid`; full-width stacked cards give long URLs room to
+   wrap so they never overflow.
 
 **Then the pattern chapters** — the "learn by doing" core. Break the pattern into
 logical chapters, one HTML page each, sequenced so a reader can build their own
@@ -128,7 +149,39 @@ solution chapter-by-chapter.
 Number chapters 1..N (the TOC page is number 0 / `index.html`). Name files
 `NN-slug.html` (zero-padded), e.g. `01-introduction.html`.
 
-### Step 6 — Scaffold the site assets
+**Chapter titles** must be **plain, specific, descriptive names** for the thing
+the chapter covers, written for an engineer scanning a table of contents. Name
+the component or concept directly (e.g. "Domain Model", "Repository Layer",
+"Composition Root", "Data Import Service"). Do not use decorative, abstract, or
+"artistic" phrasing, marketing language, or prose instructions (avoid "The Heart
+of the System", "Bringing It All Together", "Start with the Data"). Keep titles
+short and concrete. Write them in **title case** (capitalize principal words as
+for the title of a book or article), not sentence case or prose. The same rule
+applies to the section titles within each chapter (see §7).
+
+### Step 6 — Present the summary and table of contents for approval (required gate)
+Before writing **any** files, stop and present the following to the user, then
+**wait for explicit acceptance**:
+1. A concise **high-level summary of the repository as you evaluated it**: the
+   tech stack, the high-level architecture and key components, and — most
+   importantly — the **derived reusable pattern** with its motivation, forces/
+   trade-offs, and consequences (from Step 3). This shows the user the depth of
+   understanding the guide will be built on.
+2. The **proposed table of contents**: the ordered chapter list (numbers +
+   title-cased titles) you planned in Step 5, including the framing chapters and
+   the pattern chapters.
+
+Ask the user to **accept the summary and table of contents, or request changes.**
+- Do **not** proceed to scaffolding or page generation until the user explicitly
+  accepts.
+- If the user requests changes (different framing, more/fewer chapters, a
+  different pattern emphasis, deeper analysis of some area), revise Step 3–5 as
+  needed and **re-present** until they accept.
+
+(This approval gate applies to the Create operation only; it does not apply to
+§4 add-chapter or §5 update-style.)
+
+### Step 7 — Scaffold the site assets
 From the **chosen guide folder**:
 1. Create `assets/`.
 2. **Default style** (no custom style guide): copy `SKILL_DIR/assets/default-global.css`,
@@ -140,7 +193,7 @@ From the **chosen guide folder**:
    `style-guide.css`, still copy `guide.js` and `vendor/`, and localize referenced fonts/assets.
 4. Confirm there are **no CDN/`http(s)://` references** in the copied CSS.
 
-### Step 7 — Generate the pages
+### Step 8 — Generate the pages
 For each chapter, copy the matching template and replace **every** `{{PLACEHOLDER}}`:
 - **Delete every `<!-- TEMPLATE-GUIDE … -->` comment** — these are author guidance,
   not output, and they contain `{{…}}` tokens that must not ship.
@@ -161,7 +214,7 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
 - Apply the **content & style rules** in §7 to every page.
 - Use **general-purpose names** only (Step 4).
 
-### Step 8 — Wire navigation and write the manifest
+### Step 9 — Wire navigation and write the manifest
 - Build the **fly-out TOC link list** once and embed the *identical* `{{TOC_LINKS}}`
   on every page. `guide.js` auto-marks the current page.
 - Build the **TOC landing grid** (`{{TOC_ENTRIES}}`) on `index.html`.
@@ -173,7 +226,7 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
   types, titles/subtitles, files, `siteTitle`, `stylesheet`, and—if used—`styleSource`).
   This manifest is the source of truth for §4 and §5.
 
-### Step 9 — Verify
+### Step 10 — Verify
 - Confirm every `{{PLACEHOLDER}}` is gone and every `TEMPLATE-GUIDE` comment was
   removed (`grep -R "{{" <guide>` and `grep -R "TEMPLATE-GUIDE" <guide>` return nothing).
 - Confirm every internal `href` resolves to a file that exists, and every
@@ -203,7 +256,7 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
 4. **Renumber** affected chapters and **rename files** if numbering shifts; update
    every page's `{{TOC_LINKS}}`, the `index.html` grid, and all prev/next footers so
    the chain stays consistent.
-5. Update `guide.json` to match. Re-run the §3 Step 9 checks.
+5. Update `guide.json` to match. Re-run the §3 Step 10 checks.
 
 ---
 
@@ -222,7 +275,7 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
    node graph (nodes→modals with labeled edges), and footer prev/next (mapped onto the
    new design — see §6).
 4. Update `guide.json` (`stylesheet`, and `styleSource` if applicable). Re-run §3
-   Step 9 checks. Confirm the result stays fully offline (no CDN references).
+   Step 10 checks. Confirm the result stays fully offline (no CDN references).
 
 ---
 
@@ -261,11 +314,48 @@ When the user supplies their own style guide, **use it in place of the default**
 
 ## 7. Content & style rules (apply to every page)
 
+- **Teach the why, not only the how (depth requirement).** This is the most
+  important content rule. Every chapter and every section must explain the
+  **reasoning** behind the technique, not just the mechanics. For each meaningful
+  step, cover:
+  - **Why** it is done this way: the motivation and the problem it solves.
+  - **What it trades off**: the alternatives that were possible and why this
+    approach was chosen over them.
+  - **What it enables and what it costs**: the consequences, and the failure
+    modes or pitfalls a reader should watch for.
+  Tie each section back to the overall pattern and its forces (from §3 Step 3).
+  Avoid shallow, one-line sections and "type this, then type that" instructions
+  with no rationale. Use concrete, non-trivial code, and explain what each part
+  does and *why it matters*. Depth and insight are the point of the guide.
 - **Chapters are chunked.** Split each chapter into logical sections, each separated
   by a **stylized horizontal rule**: `<hr class="section-divider">`.
 - **Titles + subtitles everywhere.** Every chapter has a header title + subhead
   subtitle (`.chapter-header`). Every section has its own title + subhead
   (`.section-heading` with `<h2>` + `.section-subhead`) briefly stating what it covers.
+  - **Title style.** Both chapter titles and section `<h2>` titles must be
+    **plain, specific, descriptive names** for the thing being covered, written
+    for an experienced engineer (e.g. "Domain Model", "Repository Layer",
+    "Composition Root", "Configuration Binding"). Do not use decorative,
+    abstract, or "artistic" phrasing, marketing language, or prose instructions
+    (avoid "The Heart of the System", "Bringing It All Together", "Start with the
+    Data", "Declare the Properties"). Keep the title short and concrete. Write
+    every title in **title case** (capitalize the principal words as for the
+    title of a book or article), never sentence case or prose case. Put the
+    descriptive, "what this covers" wording in the subhead.
+  - **Voice and prose style (engineering documentation).** The guide is technical
+    documentation for an experienced software engineer, not marketing copy or an
+    essay. Write **direct, plain, engineering-driven prose** that describes the
+    technical facts: what the code does, how it works, why it is built this way,
+    and what the trade-offs are. Do **not** write sales-pitch, promotional, or
+    flowery language ("elegantly", "powerful", "seamless", "beautiful", "unlock",
+    "delightful", "robust and scalable", "best-in-class"). Do not address or
+    flatter the reader, build suspense, or use metaphors and grand framing. State
+    things plainly and precisely; assume the reader knows how to program. Prefer
+    concrete, specific statements over abstract or aspirational ones.
+- **No em-dashes in generated content.** Do **not** use em-dashes (—) anywhere in
+  the rendered guide — not in titles, subheads, prose, cards, modals, or captions.
+  Rewrite using a comma, parentheses, a colon, or two separate sentences instead.
+  (Hyphens in compound words and code are fine; this rule is about the em-dash.)
 - **Code in code blocks.** Use `<pre class="codeblock"><code>…</code></pre>` for
   multi-line code and inline `<code>` for short snippets, wherever applicable.
   Keep code generic (use the generalized names).
@@ -279,7 +369,10 @@ When the user supplies their own style guide, **use it in place of the default**
     not one of highlight.js's common languages, **omit the class** and auto-detection
     handles it. Always keep code **HTML-escaped** (`<`→`&lt;`, `&`→`&amp;`).
 - **Interactive cards.** Use `.info-card` (in `.card-grid`) for important callouts;
-  they have reactive hover effects already. The architecture chapter uses clickable
+  they have reactive hover effects already. For the **Helpful Resources** chapter,
+  use `.resource-card` inside `.resource-list` instead: these are full-width cards
+  stacked one per row, sized to the content column, so long URLs wrap inside the
+  card rather than overflowing it. The architecture chapter uses clickable
   `.arch-node`s (graph nodes) → `.modal`.
 - **Architecture node graph.** Render the architecture as a left-to-right layered
   **node graph**, not a flat card grid:
@@ -289,7 +382,9 @@ When the user supplies their own style guide, **use it in place of the default**
   - Declare relationships in a hidden `<ul class="arch-edges">` of
     `<li data-from="node-a" data-to="node-b" data-label="imports">`. `guide.js` draws
     non-overlapping SVG arrows; `data-label` is printed on each edge to name the
-    relationship.
+    relationship. `guide.js` constrains each label to the gap between its two nodes
+    and wraps it onto multiple lines so it never overlaps the nodes or other text,
+    but **keep `data-label` values short** (a few words) so they stay readable.
   - **Auto-fit & centred.** `guide.js` measures the graph and, if it would be wider
     than the content column, scales the whole graph (nodes + edges together) down so it
     always fits — it never scrolls. The graph is centred in the column. You never set a

@@ -12,14 +12,18 @@ by walking through how to build a **database library**.
 
 Given a repository path, a repo URL, or a local folder, the skill:
 
-1. **Researches the codebase** — tech stack, high-level architecture, key
-   classes/modules/services, and the setup/run path.
+1. **Researches the codebase deeply** — tech stack, high-level architecture, key
+   classes/modules/services, control and data flow, and the setup/run path.
 2. **Derives the repeatable pattern** — the core idea that makes the design work and
-   could be reused elsewhere. This pattern becomes the spine of the tutorial.
+   could be reused elsewhere, along with its motivation, trade-offs, and
+   consequences. This pattern becomes the spine of the tutorial.
 3. **Generalizes all names** — real identifiers (e.g. `AcmePaymentGateway`) are
    replaced with purpose-based, general-purpose names (e.g. `PaymentService`) so the
    lesson teaches a pattern, not one specific project.
-4. **Generates a static site** — plain HTML + CSS + vanilla JS with one chapter per
+4. **Presents a summary and table of contents for approval** — before writing any
+   files, it shows a high-level summary of the evaluated repository and the proposed
+   chapter list, and waits for you to accept (or request changes).
+5. **Generates a static site** — plain HTML + CSS + vanilla JS with one chapter per
    page, a fly-out table of contents, interactive architecture cards that open modal
    dialogs, and prev/next navigation.
 
