@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 11 · Extending the System</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 11</p>
+      <h1 class="chapter-title">Extending the System</h1>
+      <p class="chapter-subhead">A design is only as good as the changes it survives. Here's how new sources, stores, and steps slot in without disturbing what's already there.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">New Inputs</span>
+        <h2>Swapping the Data Source</h2>
+        <p class="section-subhead">The day the data stops living in a file, you'll be glad the orchestrator never knew it was a file to begin with.</p>
+      </header>
+      <div class="prose">
+        <p>Say the records move from a local JSON file to a REST API. In a tangled program that's a scary change, because file-reading code is probably braided through everything. Here it's almost boring. Write a new class that implements the same <code>IImportService</code> contract:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public class HttpImportService(HttpClient client) : IImportService
+{
+    public List&lt;DataRecord&gt; LoadFromSource()
+    {
+        string json = client.GetStringAsync("https://example/records").Result;
+        return JsonSerializer.Deserialize&lt;List&lt;DataRecord&gt;&gt;(json) ?? [];
+    }
+}</code></pre>
+      <div class="prose">
+        <p>Then change one line in the composition root from <code>JsonImportService</code> to <code>HttpImportService</code>. That's the whole edit. The orchestrator still asks for an <code>IImportService</code> and still gets back a list of records; it has no idea the bytes now come over the wire instead of off the disk. This is the import boundary doing exactly the job it was drawn for. The contract said "give me records" and stayed silent about where from, and that silence is what makes the swap a one-liner.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">New Storage</span>
+        <h2>Changing Where Records Live</h2>
+        <p class="section-subhead">Two different changes hide here: switching the database engine, and replacing storage entirely. The pattern handles both at different seams.</p>
+      </header>
+      <div class="prose">
+        <p>There are two flavors of "store it somewhere else," and the design gives you a different seam for each. If you just want a real database instead of the in-memory one, you don't touch the repository at all. The provider is chosen in the composition root, so you change <code>UseInMemoryDatabase</code> to <code>UseSqlite</code> (or SQL Server, or Postgres), add the matching EF Core package, and you're done. The repository, the context class, and everything above them stay exactly as written.</p>
+        <p>If you want to leave EF Core behind entirely, maybe records belong in a cloud document store, the <code>IRepository</code> interface is your seam. Implement those same three methods against the new backend and register it instead:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public class DocumentRepository(DocumentClient client) : IRepository
+{
+    public void AddRange(IEnumerable&lt;DataRecord&gt; records) =&gt; client.InsertMany(records);
+    public List&lt;DataRecord&gt; GetAll() =&gt; client.Query&lt;DataRecord&gt;().ToList();
+    public int Count() =&gt; client.Query&lt;DataRecord&gt;().Count();
+}</code></pre>
+      <div class="card-grid">
+        <article class="info-card">
+          <h3>Same engine, real database</h3>
+          <p>Switch the provider line in the composition root and add the package. The repository never changes, because choosing the provider was always the root's job, not the repository's.</p>
+        </article>
+        <article class="info-card">
+          <h3>Different engine entirely</h3>
+          <p>Implement <code>IRepository</code> against the new store and register it. Because that interface is the only thing the orchestrator ever saw, nothing above the seam reacts.</p>
+        </article>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">New Steps</span>
+        <h2>Adding Stages to the Pipeline</h2>
+        <p class="section-subhead">When the process itself grows a step, there's exactly one place that should know about it.</p>
+      </header>
+      <div class="prose">
+        <p>What if the work itself changes? Suppose you need to validate or deduplicate records after loading but before storing. The instinct might be to wedge that logic into the import service, but resist: importing is about reading the source, not about business rules. A new step is a new concern, so give it its own interface and class, say an <code>IRecordValidator</code>, and inject it into the orchestrator alongside the others.</p>
+        <p>The orchestrator is the right home because the orchestrator already owns sequence. Adding a step means adding a line between "load" and "store," and that line belongs where all the other ordering lives:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">public void ImportAndDisplay()
+{
+    List&lt;DataRecord&gt; imported = importService.LoadFromSource();
+    List&lt;DataRecord&gt; valid = validator.Filter(imported);   // the new step
+    repository.AddRange(valid);
+    // ... read back and present as before
+}</code></pre>
+      <div class="prose">
+        <p>One new class, one new registration, one new line in the conductor. The import service still just imports, the repository still just stores, and the new rule lives in a class you can test on its own. That's the test of a layered design, and this one passes: each kind of change has an obvious, contained home, and none of them forces you to reopen code that already works. To go deeper on the stack and the ideas behind it, the final chapter collects the references worth bookmarking.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="10-composition-root.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 10</span>
+        <span class="chapter-nav__title">Composition Root</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="12-additional-reading.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 12</span>
+        <span class="chapter-nav__title">Appendix: Additional Reading</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

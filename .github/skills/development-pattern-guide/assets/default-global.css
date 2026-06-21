@@ -329,7 +329,17 @@ main { display: block; }
 /* === 7. Chapter header (title + subhead) =========================== */
 .chapter-header {
   padding: var(--space-6) 0 var(--space-5);
-  border-bottom: 2px solid var(--rule);
+  position: relative;
+}
+/* Full-width navy hairline under the header, matching the section-divider rule. */
+.chapter-header::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 100vw;
+  margin-left: -50vw;
+  border-top: 1px solid var(--rule);
 }
 .chapter-eyebrow {
   display: inline-flex;
@@ -405,27 +415,70 @@ h3 {
   line-height: var(--leading-normal);
   color: var(--ink-muted);
 }
-/* Stylized horizontal rule between chapter chunks */
+/* Horizontal rule between chapter chunks — a full-width navy hairline matching the
+   chapter-header rule. It bleeds to the full page width like the dot-fade background. */
 hr.section-divider {
   border: 0;
-  height: 24px;
-  margin: var(--space-5) 0;
+  border-top: 1px solid var(--rule);
+  width: 100vw;
+  margin: var(--space-6) 0;
+  margin-left: calc(50% - 50vw);
+}
+/* Sit flush against an adjacent dot-fade band so the band's background touches the
+   rule directly, with no gap above or below it. */
+.dot-fade + hr.section-divider { margin-top: 0; }
+hr.section-divider:has(+ .dot-fade) { margin-bottom: 0; }
+
+/* Dot-fade — optional decorative section: gradient base + navy dot matrix that
+   fades in toward the right. Opt-in only (never applied by default); add
+   class="dot-fade" to a <section class="chapter-section"> when the user asks for it.
+   The section stays in normal flow so its content does not move; only the background
+   bleeds to the **full page width** via a ::before layer behind the content (like the
+   source). The pattern is composed from stacked backgrounds (top = white overlay that
+   hides the dots on the left, middle = dot matrix, bottom = surface→panel base). Dot
+   color mirrors --header-ink at 16% alpha. Pair the content with .dot-fade__grid for
+   the text-left / pattern-right two-column layout. */
+.dot-fade {
   position: relative;
-  background:
-    linear-gradient(90deg, transparent 0%, var(--border) 18%, var(--border) 82%, transparent 100%)
-    center / 100% 1px no-repeat;
+  padding: var(--space-6) 0;
 }
-hr.section-divider::after {
-  content: '◆';
+.dot-fade::before {
+  content: "";
   position: absolute;
+  top: 0;
+  bottom: 0;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  padding: 0 var(--space-3);
-  background: var(--surface);
-  color: var(--link);
-  font-size: var(--text-sm);
+  width: 100vw;
+  margin-left: -50vw;
+  z-index: -1;
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(90deg,
+      var(--surface) 0%,
+      var(--surface) 35%,
+      rgba(255, 255, 255, 0) 100%),
+    radial-gradient(circle at center,
+      rgba(0, 5, 96, 0.16) 0,
+      rgba(0, 5, 96, 0.16) 1.3px,
+      rgba(0, 5, 96, 0) 1.7px),
+    linear-gradient(90deg,
+      var(--surface) 0%,
+      var(--surface) 30%,
+      var(--panel) 100%);
+  background-size: 100% 100%, 18px 18px, 100% 100%;
+  background-repeat: no-repeat, repeat, no-repeat;
 }
+/* Two-column layout for a dot-fade section: reading copy left, decorative aside
+   right (where the dots are densest). */
+.dot-fade__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: var(--space-7);
+  align-items: start;
+}
+.dot-fade__grid > * { min-width: 0; }
+.dot-fade__main { min-width: 0; }
+.dot-fade__aside { align-self: start; }
 
 /* === 9. Prose ====================================================== */
 .prose { max-width: none; }
@@ -941,7 +994,7 @@ body.modal-open { overflow: hidden; }
 /* === 14. Table of Contents landing page ============================ */
 .toc-hero {
   padding: var(--space-8) 0 var(--space-7);
-  border-bottom: 2px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
 }
 .toc-hero h1 {
   font-family: var(--font-display);
@@ -1070,7 +1123,7 @@ body.modal-open { overflow: hidden; }
 .site-footer {
   padding: var(--space-7) var(--space-6) var(--space-8);
   text-align: center;
-  border-top: 2px solid var(--rule);
+  border-top: 1px solid var(--rule);
   background: var(--surface);
 }
 .site-footer__colophon {
@@ -1087,6 +1140,8 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 760px) {
   .chapter-header { padding: var(--space-5) 0 var(--space-4); }
   .chapter-section { padding: var(--space-4) 0; }
+  .dot-fade { padding: var(--space-5) 0; }
+  .dot-fade__grid { grid-template-columns: 1fr; gap: var(--space-5); }
   .container { padding: 0 var(--space-5); }
   .site-header { padding: var(--space-3) var(--space-5); }
   .chapter-nav__link { max-width: 100%; flex: 1 1 100%; }

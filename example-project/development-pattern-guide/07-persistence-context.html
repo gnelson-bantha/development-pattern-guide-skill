@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 7 · Persistence Context</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 7</p>
+      <h1 class="chapter-title">Persistence Context</h1>
+      <p class="chapter-subhead">We have records and a way to load them. Now they need somewhere to live. This is the layer that actually speaks database.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>The ORM Context</h2>
+        <p class="section-subhead">One class stands between your plain records and the database engine, and it's smaller than you'd expect.</p>
+      </header>
+      <div class="prose">
+        <p>Entity Framework Core is an object-relational mapper, which is a fancy way of saying it translates between C# objects and database rows so you don't write SQL by hand. The center of EF Core is the context, and ours is short:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using Microsoft.EntityFrameworkCore;
+using Pipeline.Models;
+
+namespace Pipeline.Data;
+
+public class PipelineDbContext(DbContextOptions&lt;PipelineDbContext&gt; options)
+    : DbContext(options)
+{
+    public DbSet&lt;DataRecord&gt; Records =&gt; Set&lt;DataRecord&gt;();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity&lt;DataRecord&gt;(entity =&gt;
+        {
+            entity.HasKey(record =&gt; record.Id);
+            entity.Property(record =&gt; record.Name).IsRequired();
+            entity.Property(record =&gt; record.Category).IsRequired();
+        });
+    }
+}</code></pre>
+      <div class="prose">
+        <p>The <code>DbSet&lt;DataRecord&gt; Records</code> property is your handle on the table. Query it, add to it, count it, and EF Core turns those operations into database commands behind the scenes. Writing it as <code>=&gt; Set&lt;DataRecord&gt;()</code> instead of a settable property is a small modern touch that skips a nullability warning and makes the set read-only from the outside. The context is the engine; this <code>DbSet</code> is the steering wheel.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>Options Through the Constructor</h2>
+        <p class="section-subhead">Here's the move that makes the whole database swappable, and it hinges on the context not choosing its own provider.</p>
+      </header>
+      <div class="prose">
+        <p>Look closely at the constructor: <code>PipelineDbContext(DbContextOptions&lt;PipelineDbContext&gt; options)</code>. The context accepts its configuration instead of creating it. It does not decide whether it's talking to an in-memory store, SQLite, or a full SQL Server. That decision arrives from outside, packaged up in the options object, and gets handed down to the base <code>DbContext</code>.</p>
+        <p>This is the same constructor-injection idea we keep meeting, applied to the database itself. The context says "tell me what provider to use" rather than "I'll use this provider." That inversion is what lets the composition root pick in-memory for a quick run and a real database for production without editing this file at all. The context stays honest about one thing, the shape of the data, and stays ignorant of another, where the data physically lives.</p>
+      </div>
+      <div class="callout">
+        <p class="callout-label">Why this matters for tests</p>
+        <p>Because the provider is injected, a test can spin up a throwaway in-memory database, run the real context against it, and verify behavior with no files and no cleanup. The production code and the test code share the exact same context class.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 3</span>
+        <h2>Mapping Rules in OnModelCreating</h2>
+        <p class="section-subhead">The model already carries a key attribute, so why repeat the rules here? Because this is where the database-specific constraints belong.</p>
+      </header>
+      <div class="prose">
+        <p><code>OnModelCreating</code> is where you tell EF Core how the Domain Model maps to a table. We declare the key explicitly with <code>HasKey</code>, and we mark <code>Name</code> and <code>Category</code> as required so the database refuses rows that leave them empty. You might wonder why we set the key here when the model already has a <code>[Key]</code> attribute. Both work, and you'd usually pick one. Keeping the persistence-specific rules in the context, though, has a real upside: the database's constraints live with the database concern, not scattered as attributes on a model that other layers also use.</p>
+        <p>The <code>IsRequired</code> calls are doing something the attributes weren't: enforcing a rule at the storage boundary. The Import Service might hand over a record with an empty name (maybe the source data was incomplete), and this constraint is the last line that says no. It's defense at the edge of persistence, separate from any validation the import side does or doesn't do.</p>
+        <p>The context knows how to store records, but we're not going to let the rest of the program touch it directly. That would leak EF Core everywhere. Instead, the next chapter wraps it in a much smaller interface: the Repository.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="06-import-service.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 6</span>
+        <span class="chapter-nav__title">Import Service</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="08-repository-layer.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 8</span>
+        <span class="chapter-nav__title">Repository Layer</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 10 · Composition Root</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 10</p>
+      <h1 class="chapter-title">Composition Root</h1>
+      <p class="chapter-subhead">Every layer has politely refused to name the next one. Here, finally, is the one place that names them all and snaps the graph together.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>Registering the Layers</h2>
+        <p class="section-subhead">This is where each interface is told which concrete class it really means, all in one readable block.</p>
+      </header>
+      <div class="prose">
+        <p>Throughout the build, every class asked for interfaces and constructed nothing. That left a gap: somebody has to decide that <code>IRepository</code> means <code>PipelineRepository</code>. The composition root is that somebody, and it lives in <code>Program.cs</code> as the program's first executing code:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Pipeline.Data;
+using Pipeline.Repositories;
+using Pipeline.Services;
+
+ServiceCollection services = new();
+
+services.AddDbContext&lt;PipelineDbContext&gt;(options =&gt;
+    options.UseInMemoryDatabase("PipelineDb"));
+
+services.AddScoped&lt;IRepository, PipelineRepository&gt;();
+services.AddScoped&lt;IImportService, JsonImportService&gt;();
+services.AddScoped&lt;IOrchestrationService, OrchestrationService&gt;();</code></pre>
+      <div class="prose">
+        <p>Each <code>AddScoped</code> line is a sentence: "when something asks for this interface, build this class." Read the three of them and you've read the entire map of which abstraction resolves to which implementation. This is the one and only file in the program that names both sides of every pairing, and that's exactly why every other file got to stay ignorant. The knowledge about concrete types didn't disappear; it got concentrated here, where you can see all of it at a glance.</p>
+        <p>The <code>AddDbContext</code> line is where the database finally gets chosen. Remember the context took its provider through the constructor and refused to pick one itself? This is the moment that choice gets made. We pass <code>UseInMemoryDatabase</code>, and changing this single line to <code>UseSqlite</code> or <code>UseSqlServer</code> would move the whole program onto a real database without touching another file. The seam the context left open gets filled right here.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>Why Scoped, and What a Lifetime Is</h2>
+        <p class="section-subhead">That word "scoped" is a real decision about how long objects live and who shares them.</p>
+      </header>
+      <div class="prose">
+        <p>Every registration says <code>AddScoped</code>, and that word picks a lifetime. The container offers three. Singleton means one instance for the whole application. Transient means a brand-new instance every single time someone asks. Scoped sits in between: one instance per scope, where a scope is usually one unit of work, like a single request or, here, a single run.</p>
+        <p>Scoped is the right call for anything that touches a database. EF Core's context isn't built to be shared across concurrent work, and it accumulates change-tracking state as you use it. You want a fresh one per unit of work and you want everyone in that unit to share the same one, so the repository and the context line up on the same change tracker. Scoped gives you exactly that. Pick singleton instead and you'd be sharing one context forever, which leaks state and breaks under concurrency. Pick transient and the repository might get a different context than expected. The lifetime isn't a detail you sprinkle on; it's a correctness decision, and scoped is the one that matches a database-backed unit of work.</p>
+      </div>
+      <div class="callout">
+        <p class="callout-label">The failure mode to remember</p>
+        <p>Most dependency-injection bugs are lifetime mismatches: a long-lived object holding a short-lived one, or two collaborators that were supposed to share a context ending up with two different ones. When something behaves strangely, check the lifetimes first.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 3</span>
+        <h2>Building the Graph and Pulling the Trigger</h2>
+        <p class="section-subhead">One resolve call quietly constructs the entire object tree you spent six chapters building.</p>
+      </header>
+      <div class="prose">
+        <p>Registration just describes the parts. Now we build the container and run:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using ServiceProvider provider = services.BuildServiceProvider();
+
+// Start each run from a clean, freshly created store.
+PipelineDbContext dbContext = provider.GetRequiredService&lt;PipelineDbContext&gt;();
+dbContext.Database.EnsureDeleted();
+dbContext.Database.EnsureCreated();
+
+IOrchestrationService orchestrator =
+    provider.GetRequiredService&lt;IOrchestrationService&gt;();
+orchestrator.ImportAndDisplay();</code></pre>
+      <div class="prose">
+        <p>That single <code>GetRequiredService&lt;IOrchestrationService&gt;()</code> call does something genuinely satisfying. The container sees the orchestrator needs an <code>IImportService</code> and an <code>IRepository</code>, sees the repository needs a <code>PipelineDbContext</code>, sees the context needs its options, and builds the whole tree from the bottom up, handing each constructor exactly what it asked for. You wrote a dozen "give me what I need" constructors across six chapters, and this one line satisfies all of them at once. That's dependency injection delivering on its promise.</p>
+        <p>The <code>EnsureDeleted</code> then <code>EnsureCreated</code> pair resets the in-memory store so every run starts empty and produces the same output, which keeps the demo honest. The <code>using</code> on the provider matters too: when the program ends, disposing the provider disposes the scoped services it created, including the context, so the database connection is cleaned up properly. Even teardown follows the rule that the composition root owns the lifecycle.</p>
+        <p>That completes the pattern. Six small layers, each behind an interface, each ignorant of the others, all assembled in one readable block. From here, the real test of a design is how it grows, so the next chapter walks through adding new sources, stores, and steps without disturbing what you've built.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="09-orchestration-service.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 9</span>
+        <span class="chapter-nav__title">Orchestration Service</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="11-extending-the-system.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 11</span>
+        <span class="chapter-nav__title">Extending the System</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

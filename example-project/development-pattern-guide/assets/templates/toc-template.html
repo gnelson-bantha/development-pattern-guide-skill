@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!-- TEMPLATE-GUIDE — delete this entire comment when generating a page
+  development-pattern-guide · TABLE OF CONTENTS PAGE TEMPLATE  (save as index.html)
+  ----------------------------------------------------------------------------
+  This is the pretty landing page that links to every chapter. Fill placeholders:
+
+    {{SITE_TITLE}}      Short brand name (header + hero)
+    {{GUIDE_TITLE}}     Hero heading (HTML allowed: <em> for emphasis)
+    {{GUIDE_SUBHEAD}}   Hero subtitle — one line on what the guide teaches
+    NOTE: chapter titles in {{TOC_LINKS}} and {{TOC_ENTRIES}} are plain, specific,
+          descriptive names in title case (e.g. "Domain Model"), not decorative or
+          "artistic" phrasing, and no rendered text on this page may use em-dashes
+          (use commas/parentheses instead).
+    {{ASSETS}}          Relative path to assets (usually "assets")
+    {{TOC_LINKS}}       <li> items for the fly-out panel (same list used on every
+                        page). One <li> per chapter:
+                            <li><a class="toc-flyout__link" href="01-introduction.html">
+                              <span class="num">01</span>
+                              <span>Introduction</span></a></li>
+    {{TOC_ENTRIES}}     Card entries for the main grid. One per chapter:
+                            <li><a class="toc-entry" href="01-introduction.html">
+                              <span class="toc-entry__num">01</span>
+                              <span class="toc-entry__body">
+                                <span class="toc-entry__title">Introduction</span>
+                                <span class="toc-entry__sub">What this pattern does at its core.</span>
+                              </span>
+                              <span class="toc-entry__arrow" aria-hidden="true">→</span>
+                            </a></li>
+    {{FOOTER_TEXT}}     Colophon line.
+  ----------------------------------------------------------------------------
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{SITE_TITLE}} · Contents</title>
+  <link rel="stylesheet" href="{{ASSETS}}/default-global.css">
+  <script src="{{ASSETS}}/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        {{TOC_LINKS}}
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">{{SITE_TITLE}}</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <section class="toc-hero">
+      <h1>{{GUIDE_TITLE}}</h1>
+      <p class="subhead">{{GUIDE_SUBHEAD}}</p>
+    </section>
+
+    <ol class="toc-grid">
+      {{TOC_ENTRIES}}
+    </ol>
+  </main>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">{{FOOTER_TEXT}}</p>
+  </footer>
+</body>
+</html>

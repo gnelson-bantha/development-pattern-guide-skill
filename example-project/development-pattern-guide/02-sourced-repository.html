@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 2 · Sourced Repository</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 2</p>
+      <h1 class="chapter-title">Sourced Repository</h1>
+      <p class="chapter-subhead">The pattern came from a real app called WorldLocations. This is the only chapter that uses its real names, so you can see the concrete thing before we abstract it.</p>
+    </header>
+
+    <div class="callout">
+      <p class="callout-label">Real names ahead</p>
+      <p>Every other chapter uses generalized names like Import Service and Repository. Here we use the actual identifiers from the source project, so you can map the lesson back to working code.</p>
+    </div>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Project</span>
+        <h2>WorldLocations at a Glance</h2>
+        <p class="section-subhead">A console app that loads a handful of cities, stashes them in a database, and prints them back out.</p>
+      </header>
+      <div class="prose">
+        <p>WorldLocations is a .NET 10 console application. Run it and it reads a bundled <code>Data/locations.json</code> file full of cities, populations, and countries, loads those rows into an Entity Framework Core database, reads them back, and writes them to the terminal. That's the entire user-facing behavior. The interesting part isn't what it does; it's how the few hundred lines are arranged.</p>
+        <p>The dependencies are deliberately small. The project file pulls in two packages and nothing else:</p>
+      </div>
+      <pre class="codeblock"><code class="language-xml">&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;OutputType&gt;Exe&lt;/OutputType&gt;
+    &lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;RootNamespace&gt;WorldLocations&lt;/RootNamespace&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;None Update="Data/locations.json"&gt;
+      &lt;CopyToOutputDirectory&gt;PreserveNewest&lt;/CopyToOutputDirectory&gt;
+    &lt;/None&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</code></pre>
+      <div class="prose">
+        <p>Two packages tell you almost everything. <code>Microsoft.EntityFrameworkCore.InMemory</code> is the database. <code>Microsoft.Extensions.DependencyInjection</code> is the wiring. The <code>None Update</code> block copies the JSON file next to the compiled binaries so the running program can find it. Nullable reference types and implicit usings are on, which keeps the source terse and the null-handling honest.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Folders</span>
+        <h2>How the Source Is Organized</h2>
+        <p class="section-subhead">Five folders, and each one is a layer. The directory tree is already the architecture diagram.</p>
+      </header>
+      <div class="prose">
+        <p>Open the project and the structure reads like a table of contents for this guide. Each folder is a responsibility:</p>
+        <ul>
+          <li><code>Models/</code> holds <code>Location</code>, the data class.</li>
+          <li><code>Data/</code> holds <code>LocationDbContext</code> and the seed file <code>locations.json</code>.</li>
+          <li><code>Repositories/</code> holds <code>ILocationRepository</code> and <code>LocationRepository</code>.</li>
+          <li><code>Services/</code> holds two pairs: <code>ILocationImportService</code> / <code>LocationImportService</code> and <code>ILocationService</code> / <code>LocationService</code>.</li>
+          <li><code>Program.cs</code> at the root is the entry point and the composition root.</li>
+        </ul>
+        <p>The pairing of interface plus implementation shows up everywhere. That repetition is the pattern leaving fingerprints: every layer is defined first as a contract and only then as code that satisfies it.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Types</span>
+        <h2>The Classes That Do the Work</h2>
+        <p class="section-subhead">Six small types, each with a single responsibility and a clear edge against its neighbors.</p>
+      </header>
+      <div class="prose">
+        <p><code>Location</code> is the simplest: four properties (<code>Id</code>, <code>CityName</code>, <code>CountryName</code>, <code>Population</code>) decorated with both <code>[JsonPropertyName]</code> attributes for deserialization and a <code>[Key]</code> attribute for EF Core. One class serves two systems at once, which keeps the data shape in a single place.</p>
+        <p><code>LocationImportService</code> owns input. It builds a path with <code>Path.Combine(AppContext.BaseDirectory, "Data", "locations.json")</code>, checks the file exists and throws a <code>FileNotFoundException</code> if it doesn't, then deserializes with case-insensitive JSON options. Its only public method is <code>LoadFromJson()</code>, and it returns an empty list rather than null if the file parses to nothing.</p>
+        <p><code>LocationDbContext</code> is the EF Core context. It exposes <code>DbSet&lt;Location&gt; Locations</code> and configures the entity in <code>OnModelCreating</code>: the key, plus required constraints on <code>CityName</code> and <code>CountryName</code>. It takes its <code>DbContextOptions</code> through a primary constructor, which is what lets the container decide it should be the in-memory provider.</p>
+        <p><code>LocationRepository</code> implements <code>ILocationRepository</code> and exposes exactly three operations: <code>AddRange</code>, <code>GetAll</code>, and <code>Count</code>. It calls <code>SaveChanges</code> right after adding, so callers never think about change tracking. Nothing above it imports EF Core.</p>
+        <p><code>LocationService</code> implements <code>ILocationService</code> and is the conductor. Its <code>ImportAndDisplay()</code> method asks the import service to load, hands the result to the repository, reads it back, and prints each record with a divider line. It depends on the two interfaces and constructs nothing.</p>
+      </div>
+      <div class="card-grid">
+        <article class="info-card">
+          <h3>The contract every layer keeps</h3>
+          <p>No layer constructs the layer it depends on. Each one accepts its collaborators through its constructor and talks to them only through interfaces, so the concrete choices all defer to one place.</p>
+        </article>
+        <article class="info-card">
+          <h3>The seam that makes it swappable</h3>
+          <p>Because persistence sits behind <code>ILocationRepository</code> and the database behind <code>DbContextOptions</code>, the in-memory provider could become SQLite or SQL Server without <code>LocationService</code> noticing.</p>
+        </article>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Entry Point</span>
+        <h2>What Program.cs Pulls Together</h2>
+        <p class="section-subhead">Twenty-odd lines register the parts, reset the database, and pull the trigger.</p>
+      </header>
+      <div class="prose">
+        <p>The whole program is started by top-level statements in <code>Program.cs</code>. It creates a <code>ServiceCollection</code>, registers <code>LocationDbContext</code> against the in-memory provider, registers the three services as scoped, and builds a provider. Then it deletes and recreates the database for a clean run, resolves <code>ILocationService</code>, and calls <code>ImportAndDisplay()</code>. That single resolve triggers the container to build the entire object graph behind it.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">ServiceCollection services = new();
+
+services.AddDbContext&lt;LocationDbContext&gt;(options =&gt;
+    options.UseInMemoryDatabase("WorldLocationsDb"));
+
+services.AddScoped&lt;ILocationRepository, LocationRepository&gt;();
+services.AddScoped&lt;ILocationImportService, LocationImportService&gt;();
+services.AddScoped&lt;ILocationService, LocationService&gt;();
+
+using ServiceProvider provider = services.BuildServiceProvider();
+
+LocationDbContext dbContext = provider.GetRequiredService&lt;LocationDbContext&gt;();
+dbContext.Database.EnsureDeleted();
+dbContext.Database.EnsureCreated();
+
+ILocationService locationService = provider.GetRequiredService&lt;ILocationService&gt;();
+locationService.ImportAndDisplay();</code></pre>
+      <div class="prose">
+        <p>Everything the rest of this guide teaches generalizes from exactly these pieces. <code>Location</code> becomes the Domain Model, <code>LocationImportService</code> becomes the Import Service, <code>LocationDbContext</code> becomes the Persistence Context, <code>LocationRepository</code> becomes the Repository, <code>LocationService</code> becomes the Orchestration Service, and <code>Program.cs</code> becomes the Composition Root. With the concrete version in mind, let's line up the tools you'll need to build your own.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="01-introduction.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 1</span>
+        <span class="chapter-nav__title">Introduction</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="03-prerequisites.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 3</span>
+        <span class="chapter-nav__title">Prerequisites</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

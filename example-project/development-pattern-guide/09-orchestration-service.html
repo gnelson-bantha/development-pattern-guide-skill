@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 9 · Orchestration Service</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 9</p>
+      <h1 class="chapter-title">Orchestration Service</h1>
+      <p class="chapter-subhead">Every worker is built. This layer is the conductor that tells them when to play, and it does almost nothing itself.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>Depending on Two Interfaces</h2>
+        <p class="section-subhead">The conductor needs the import and persistence layers, but it asks for the abstractions, never the concrete classes.</p>
+      </header>
+      <div class="prose">
+        <p>We've got a layer that loads records and a layer that stores them, but so far nothing tells them to actually do it in sequence. That's this layer's whole job. Contract first, as usual, and it's almost comically simple:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">namespace Pipeline.Services;
+
+public interface IOrchestrationService
+{
+    void ImportAndDisplay();
+}</code></pre>
+      <div class="prose">
+        <p>One method. The orchestrator presents a single verb to the outside world, "run the whole thing," and hides every step behind it. Now the implementation, and the constructor is where the pattern pays off:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using Pipeline.Models;
+using Pipeline.Repositories;
+
+namespace Pipeline.Services;
+
+public class OrchestrationService(
+    IImportService importService,
+    IRepository repository) : IOrchestrationService
+{
+    public void ImportAndDisplay()
+    {
+        List&lt;DataRecord&gt; imported = importService.LoadFromSource();
+        repository.AddRange(imported);
+
+        List&lt;DataRecord&gt; stored = repository.GetAll();
+
+        Console.WriteLine($"Loaded {repository.Count()} records from the store:");
+        Console.WriteLine();
+
+        foreach (DataRecord record in stored)
+        {
+            Console.WriteLine($"Id:       {record.Id}");
+            Console.WriteLine($"Name:     {record.Name}");
+            Console.WriteLine($"Category: {record.Category}");
+            Console.WriteLine($"Quantity: {record.Quantity:N0}");
+            Console.WriteLine(new string('-', 40));
+        }
+    }
+}</code></pre>
+      <div class="prose">
+        <p>The constructor asks for <code>IImportService</code> and <code>IRepository</code>, the interfaces, not <code>JsonImportService</code> and <code>PipelineRepository</code>, the classes. That's the line that keeps this layer honest. The orchestrator has no idea its records come from JSON or that they land in Entity Framework. It knows only that something can load records and something can store them. Swap the JSON importer for an HTTP one and this file is untouched, because it was never looking at the concrete type in the first place.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>Sequence, Not Substance</h2>
+        <p class="section-subhead">Read what the method actually does and you'll notice it never does any real work, it just decides the order.</p>
+      </header>
+      <div class="prose">
+        <p>Walk through <code>ImportAndDisplay</code> and there's a rhythm to it: load, then store, then read back, then print. Four steps, and the orchestrator owns the order they happen in but none of the work inside them. It doesn't parse a file, it asks the import service to. It doesn't run a query, it asks the repository to. Its real contribution is the sequencing decision: records have to be loaded before they can be stored, and stored before they can be read back.</p>
+        <p>This is what separates an orchestrator from a layer that does a job. The import service does a job. The repository does a job. The orchestrator coordinates jobs. Keeping coordination in its own layer means the question "what happens, and in what order?" has a single answer in a single file. When the business process changes, say you need to deduplicate records between loading and storing, you know exactly where that logic goes, and you know it won't disturb how files are read or how the database works.</p>
+      </div>
+      <div class="card-grid">
+        <article class="info-card">
+          <h3>Read-back over trusting the input</h3>
+          <p>It prints the records fetched from the repository, not the list it just imported. Asking the store for the truth confirms the round trip actually worked instead of assuming it did.</p>
+        </article>
+        <article class="info-card">
+          <h3>Presentation lives at the top</h3>
+          <p>The console formatting sits here, in the outermost layer, so the workers below stay free of any opinion about how results get shown. Swap console for a file writer and only this layer moves.</p>
+        </article>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 3</span>
+        <h2>The Layer That's Trivial to Test</h2>
+        <p class="section-subhead">Because it touches nothing real, you can prove its logic without a file or a database anywhere in sight.</p>
+      </header>
+      <div class="prose">
+        <p>Here's the quiet reward for all this discipline. The orchestrator depends only on two interfaces, so a test can hand it fakes and check the sequence without any infrastructure at all. The nice part is testing. Swap in a fake repository and the layers above don't notice the difference:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">var fakeImport = new StubImportService(threeRecords);
+var fakeRepo = new InMemoryRepository();
+
+var orchestrator = new OrchestrationService(fakeImport, fakeRepo);
+orchestrator.ImportAndDisplay();
+
+// Did the orchestrator actually store what was imported?
+Assert.Equal(3, fakeRepo.Count());</code></pre>
+      <div class="prose">
+        <p>No file on disk, no EF Core, no setup or teardown. The test verifies the thing the orchestrator is actually responsible for, that imported records make it into the store, and it runs in microseconds. This is the concrete answer to "why bother with all these interfaces?" The ceremony from earlier chapters cashes out right here, as the ability to test the most important logic in the program in isolation.</p>
+        <p>So every layer exists, and every layer talks only to abstractions. But somebody still has to decide that <code>IRepository</code> means <code>PipelineRepository</code> and hand the orchestrator its real collaborators. Nothing we've written does that yet. That final job belongs to the composition root.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="08-repository-layer.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 8</span>
+        <span class="chapter-nav__title">Repository Layer</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="10-composition-root.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 10</span>
+        <span class="chapter-nav__title">Composition Root</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

@@ -1,27 +1,27 @@
 {
-  "siteTitle": "Layered DI Guide",
-  "guideTitle": "Build a <em>Layered</em> Application with Dependency Injection",
-  "guideSubhead": "Learn the pattern behind a small data application: a domain model, a persistence layer hidden behind a repository, services that own the work, and one composition root that wires it all together.",
-  "patternName": "Layered Architecture with Dependency Injection",
+  "siteTitle": "Layered Pipeline Guide",
+  "guideTitle": "Build a <em>Layered Data Pipeline</em>",
+  "guideSubhead": "Learn the pattern behind a small console program that reads data, stores it, and prints it: clean layers behind interfaces, assembled at a single composition root with dependency injection.",
+  "patternName": "Layered Data Pipeline with a Composition Root",
   "source": {
-    "kind": "local-repo",
+    "kind": "local-folder",
     "location": "example-project"
   },
   "stylesheet": "default-global.css",
-  "generatedAt": "2026-06-20T00:00:00Z",
+  "generatedAt": "2026-06-21T00:00:00Z",
   "chapters": [
     { "number": 0, "title": "Contents", "subtitle": "Everything in this guide", "file": "index.html", "type": "toc" },
-    { "number": 1, "title": "Introduction", "subtitle": "What layered architecture with dependency injection does at its core", "file": "01-introduction.html", "type": "introduction" },
-    { "number": 2, "title": "Prerequisites", "subtitle": "The SDK, packages, and skills you need before you start", "file": "02-prerequisites.html", "type": "prerequisites" },
-    { "number": 3, "title": "Quick Start Guide", "subtitle": "Create, wire, and run a working layered app in under ten minutes", "file": "03-quick-start.html", "type": "quick-start" },
-    { "number": 4, "title": "High Level Architecture", "subtitle": "The layers, their boundaries, and how a request flows through them", "file": "04-high-level-architecture.html", "type": "architecture" },
-    { "number": 5, "title": "Helpful Resources", "subtitle": "Documentation for the runtime, the ORM, and the DI container", "file": "05-helpful-resources.html", "type": "helpful-resources" },
-    { "number": 6, "title": "The Domain Model", "subtitle": "The entity that flows through every layer, and the attributes it carries", "file": "06-the-domain-model.html", "type": "pattern" },
-    { "number": 7, "title": "The Database Context", "subtitle": "Mapping the entity to storage with an ORM context and a model configuration", "file": "07-the-database-context.html", "type": "pattern" },
-    { "number": 8, "title": "The Repository Layer", "subtitle": "A narrow contract that hides the ORM from everything above it", "file": "08-the-repository-layer.html", "type": "pattern" },
-    { "number": 9, "title": "The Import Service", "subtitle": "Reading external data, deserializing it, and turning it into entities", "file": "09-the-import-service.html", "type": "pattern" },
-    { "number": 10, "title": "The Orchestration Service", "subtitle": "Composing the lower layers into one end-to-end use case", "file": "10-the-orchestration-service.html", "type": "pattern" },
-    { "number": 11, "title": "The Composition Root", "subtitle": "Registering every contract, building the provider, and running the app", "file": "11-the-composition-root.html", "type": "pattern" },
-    { "number": 12, "title": "Extending the System", "subtitle": "Adding new entities, swapping implementations, and growing the layers", "file": "12-extending-the-system.html", "type": "extending" }
+    { "number": 1, "title": "Introduction", "subtitle": "The pattern at its core: stages behind interfaces, wired in one place.", "file": "01-introduction.html", "type": "introduction" },
+    { "number": 2, "title": "Sourced Repository", "subtitle": "A tour of the real WorldLocations app this pattern was drawn from.", "file": "02-sourced-repository.html", "type": "sourced-repository" },
+    { "number": 3, "title": "Prerequisites", "subtitle": "The SDK, packages, and background you'll want before building.", "file": "03-prerequisites.html", "type": "prerequisites" },
+    { "number": 4, "title": "High Level Architecture", "subtitle": "An interactive map of the layers and how data flows through them.", "file": "04-high-level-architecture.html", "type": "architecture" },
+    { "number": 5, "title": "Domain Model", "subtitle": "The plain record that travels through every layer.", "file": "05-domain-model.html", "type": "pattern" },
+    { "number": 6, "title": "Import Service", "subtitle": "The boundary that reads the outside world and turns it into records.", "file": "06-import-service.html", "type": "pattern" },
+    { "number": 7, "title": "Persistence Context", "subtitle": "The ORM context that maps records to a database.", "file": "07-persistence-context.html", "type": "pattern" },
+    { "number": 8, "title": "Repository Layer", "subtitle": "A thin interface that hides the database from everyone above it.", "file": "08-repository-layer.html", "type": "pattern" },
+    { "number": 9, "title": "Orchestration Service", "subtitle": "The conductor that runs the import, persist, retrieve, present sequence.", "file": "09-orchestration-service.html", "type": "pattern" },
+    { "number": 10, "title": "Composition Root", "subtitle": "The one place that knows every concrete type and bolts the graph together.", "file": "10-composition-root.html", "type": "pattern" },
+    { "number": 11, "title": "Extending the System", "subtitle": "Where new sources, stores, and steps hook into the pipeline.", "file": "11-extending-the-system.html", "type": "extending" },
+    { "number": 12, "title": "Appendix: Additional Reading", "subtitle": "Docs and references for the stack and the ideas behind the pattern.", "file": "12-additional-reading.html", "type": "helpful-resources" }
   ]
 }

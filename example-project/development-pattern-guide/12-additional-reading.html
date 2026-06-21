@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 12 · Appendix: Additional Reading</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 12</p>
+      <h1 class="chapter-title">Appendix: Additional Reading</h1>
+      <p class="chapter-subhead">Where to go next on the stack and the ideas the pattern leans on, from the official docs to the people who named these patterns.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Stack</span>
+        <h2>Official Documentation</h2>
+        <p class="section-subhead">Start here when you want the authoritative version of anything we touched.</p>
+      </header>
+      <div class="resource-list">
+        <div class="resource-card">
+          <h3>.NET Dependency Injection</h3>
+          <p>The official guide to <code>Microsoft.Extensions.DependencyInjection</code>: registering services, the three lifetimes, and how the container resolves a graph. Read it to understand exactly what the composition root chapter set up.</p>
+          <p><a href="https://learn.microsoft.com/dotnet/core/extensions/dependency-injection">https://learn.microsoft.com/dotnet/core/extensions/dependency-injection</a></p>
+        </div>
+        <div class="resource-card">
+          <h3>Service Lifetimes</h3>
+          <p>A focused page on singleton, scoped, and transient, including the captive-dependency pitfall where a long-lived object accidentally traps a short-lived one. Directly relevant to why we registered everything as scoped.</p>
+          <p><a href="https://learn.microsoft.com/dotnet/core/extensions/dependency-injection#service-lifetimes">https://learn.microsoft.com/dotnet/core/extensions/dependency-injection#service-lifetimes</a></p>
+        </div>
+        <div class="resource-card">
+          <h3>Entity Framework Core</h3>
+          <p>The home for the ORM behind the persistence layer: the <code>DbContext</code>, <code>DbSet</code>, model configuration, and the full list of database providers you can swap in at the composition root.</p>
+          <p><a href="https://learn.microsoft.com/ef/core/">https://learn.microsoft.com/ef/core/</a></p>
+        </div>
+        <div class="resource-card">
+          <h3>System.Text.Json</h3>
+          <p>The serializer the import service uses, including <code>JsonSerializerOptions</code>, the <code>[JsonPropertyName]</code> attribute, and case-insensitive matching. Good background for the parsing decisions in the Import Service chapter.</p>
+          <p><a href="https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/overview">https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/overview</a></p>
+        </div>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Ideas</span>
+        <h2>Patterns and Principles</h2>
+        <p class="section-subhead">The names and reasoning behind the moves we made, straight from the people who articulated them.</p>
+      </header>
+      <div class="resource-list">
+        <div class="resource-card">
+          <h3>The Repository Pattern</h3>
+          <p>Martin Fowler's catalog entry for the pattern that gave us the thin wall over the database. Useful for seeing the original framing and where a repository ends and a query object begins.</p>
+          <p><a href="https://martinfowler.com/eaaCatalog/repository.html">https://martinfowler.com/eaaCatalog/repository.html</a></p>
+        </div>
+        <div class="resource-card">
+          <h3>Inversion of Control and Dependency Injection</h3>
+          <p>The essay that popularized the distinction between depending on abstractions and constructing them yourself. It explains why the composition root exists and why classes accept their collaborators instead of building them.</p>
+          <p><a href="https://martinfowler.com/articles/injection.html">https://martinfowler.com/articles/injection.html</a></p>
+        </div>
+        <div class="resource-card">
+          <h3>The Composition Root</h3>
+          <p>Mark Seemann's write-up of the single-place-to-wire principle, including why pushing all construction to one location keeps the rest of the codebase free of the container.</p>
+          <p><a href="https://blog.ploeh.dk/2011/07/28/CompositionRoot/">https://blog.ploeh.dk/2011/07/28/CompositionRoot/</a></p>
+        </div>
+        <div class="resource-card">
+          <h3>The Dependency Inversion Principle</h3>
+          <p>The "D" in SOLID, the principle underneath every interface-first decision in this guide: high-level layers and low-level layers should both depend on abstractions, not on each other.</p>
+          <p><a href="https://en.wikipedia.org/wiki/Dependency_inversion_principle">https://en.wikipedia.org/wiki/Dependency_inversion_principle</a></p>
+        </div>
+      </div>
+      <div class="prose">
+        <p>That's the guide. You started with a four-line program and ended with a layered pipeline you could grow in three different directions without fear. The pattern scales down to this toy and up to real systems, because the idea underneath it, draw boundaries, depend on abstractions, assemble in one place, doesn't care how big the program gets.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="11-extending-the-system.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 11</span>
+        <span class="chapter-nav__title">Extending the System</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

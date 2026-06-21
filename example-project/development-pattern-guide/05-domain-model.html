@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 5 · Domain Model</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 5</p>
+      <h1 class="chapter-title">Domain Model</h1>
+      <p class="chapter-subhead">We build from the inside out, and the innermost piece is the record everything else carries around.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>A Class With No Behavior</h2>
+        <p class="section-subhead">Start with the data, because every other layer is defined by what it does to this thing.</p>
+      </header>
+      <div class="prose">
+        <p>The architecture map ended with the Domain Model sitting deep inside the persistence system, and that's a good place to start building. It's the smallest piece and the one every arrow eventually carries. Get it right and the layers above it have something solid to stand on.</p>
+        <p>Here's the whole thing. A handful of properties and not a single method:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace Pipeline.Models;
+
+public class DataRecord
+{
+    [Key]
+    [JsonPropertyName("id")]
+    public Guid Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("category")]
+    public string Category { get; set; } = string.Empty;
+
+    [JsonPropertyName("quantity")]
+    public int Quantity { get; set; }
+}</code></pre>
+      <div class="prose">
+        <p>That's deliberate. The Domain Model is sometimes called an anemic model, and people say that like it's a criticism, but here it's the entire point. This class doesn't validate itself, doesn't talk to a database, doesn't know what JSON is. It's a bag of fields that means the same thing in every layer. When the Import Service produces records and the Repository stores them and the Orchestration Service prints them, they're all holding the same shape, and none of them disagrees about what a record is.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>One Class, Two Jobs</h2>
+        <p class="section-subhead">Those attributes aren't decoration. Each one answers a different system that needs something from this type.</p>
+      </header>
+      <div class="prose">
+        <p>Look again at the attributes, because they're doing real work for two different consumers. The <code>[JsonPropertyName]</code> attributes belong to the serializer: they map the lowercase keys in the source file (<code>name</code>, <code>category</code>) onto the C# properties (<code>Name</code>, <code>Category</code>). The <code>[Key]</code> attribute belongs to the ORM: it tells Entity Framework Core which property is the primary key when this record becomes a database row.</p>
+        <p>So one plain class quietly serves both the import side and the persistence side. That's a trade-off worth being honest about. The clean-architecture purist would split this into a separate JSON DTO and a separate database entity, keeping each free of the other's attributes. They'd have a point. But for a pipeline this size, two parallel classes plus mapping code between them is more machinery than the problem deserves. We let one type wear both hats and keep the field definitions in a single place.</p>
+      </div>
+      <div class="callout">
+        <p class="callout-label">When to split it later</p>
+        <p>The moment the JSON shape and the stored shape start drifting apart, say the source sends a full address but you only persist a city, that's your signal to break this into two types with a mapping step. Until then, one class is the simpler honest choice.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 3</span>
+        <h2>Sensible Defaults and the Key Type</h2>
+        <p class="section-subhead">Two small decisions in here save you from a category of null bugs and id collisions.</p>
+      </header>
+      <div class="prose">
+        <p>Notice <code>= string.Empty</code> on the two string properties. With nullable reference types switched on, the compiler would otherwise nag that a non-null <code>string</code> might never get assigned. Defaulting to empty makes the promise true: a freshly constructed record has real empty strings, not nulls waiting to throw somewhere downstream. It's a one-liner that removes a whole class of "object reference not set" surprises later.</p>
+        <p>The key is a <code>Guid</code> rather than an auto-incrementing integer, and that's a choice with consequences. A <code>Guid</code> can be generated anywhere, by the source system, by your importer, by a test, without coordinating with the database to find the next free number. For a pipeline that ingests records from outside, that independence matters: the id arrives already baked into the JSON, and you store it as-is instead of letting the database mint a new one. The cost is wider keys and ids that aren't human-friendly, which is a fine trade when records are born outside your database.</p>
+        <p>That's the entire foundation. With a record type that both the serializer and the ORM understand, we can build the layer that brings these records into the program in the first place: the Import Service.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="04-high-level-architecture.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 4</span>
+        <span class="chapter-nav__title">High Level Architecture</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="06-import-service.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 6</span>
+        <span class="chapter-nav__title">Import Service</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

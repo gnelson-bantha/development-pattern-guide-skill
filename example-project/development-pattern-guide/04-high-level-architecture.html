@@ -16,19 +16,18 @@
     <div class="toc-flyout__panel" id="toc-flyout-panel">
       <p class="toc-flyout__title">Contents</p>
       <ol class="toc-flyout__list">
-        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
         <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
-        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
-        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start Guide</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
         <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
-        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
-        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
-        <li><a class="toc-flyout__link" href="07-the-database-context.html"><span class="num">07</span><span>The Database Context</span></a></li>
-        <li><a class="toc-flyout__link" href="08-the-repository-layer.html"><span class="num">08</span><span>The Repository Layer</span></a></li>
-        <li><a class="toc-flyout__link" href="09-the-import-service.html"><span class="num">09</span><span>The Import Service</span></a></li>
-        <li><a class="toc-flyout__link" href="10-the-orchestration-service.html"><span class="num">10</span><span>The Orchestration Service</span></a></li>
-        <li><a class="toc-flyout__link" href="11-the-composition-root.html"><span class="num">11</span><span>The Composition Root</span></a></li>
-        <li><a class="toc-flyout__link" href="12-extending-the-system.html"><span class="num">12</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
       </ol>
     </div>
   </nav>
@@ -36,7 +35,7 @@
   <header class="site-header">
     <a class="site-brand" href="index.html">
       <span class="site-brand__mark">◆</span>
-      <span class="site-brand__name">Layered DI Guide</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
     </a>
     <p class="site-header__meta">Pattern Tutorial</p>
   </header>
@@ -45,14 +44,14 @@
     <header class="chapter-header">
       <p class="chapter-eyebrow">Chapter 4</p>
       <h1 class="chapter-title">High Level Architecture</h1>
-      <p class="chapter-subhead">The layers, the direction their dependencies point, and how one run flows through them.</p>
+      <p class="chapter-subhead">A map of the whole pipeline. Follow the arrows once here and the rest of the guide is just zooming into each box.</p>
     </header>
 
     <section class="chapter-section">
       <header class="section-heading">
         <span class="eyebrow">The Big Picture</span>
         <h2>System Map</h2>
-        <p class="section-subhead">Click any node to expand it. Arrows show how each component depends on the next.</p>
+        <p class="section-subhead">Click any node to expand it. Arrows show how each component relates to the next.</p>
       </header>
 
       <div class="arch-graph" id="arch-main">
@@ -60,101 +59,85 @@
           <button class="arch-node" type="button" id="node-root" data-modal="arch-root">
             <span class="arch-node__icon" aria-hidden="true">▸</span>
             <span class="arch-node__title">Composition Root</span>
-            <span class="arch-node__desc">Registers every contract and starts the run.</span>
+            <span class="arch-node__desc">Registers every layer and starts the run.</span>
             <span class="arch-node__expand">Expand</span>
           </button>
         </div>
 
         <div class="arch-layer">
-          <button class="arch-node" type="button" id="node-orchestration" data-modal="arch-orchestration">
+          <button class="arch-node" type="button" id="node-orchestrator" data-modal="arch-orchestrator">
             <span class="arch-node__icon" aria-hidden="true">◆</span>
             <span class="arch-node__title">Orchestration Service</span>
-            <span class="arch-node__desc">Runs the use case by calling the layers in order.</span>
+            <span class="arch-node__desc">Runs the steps in order and presents the result.</span>
             <span class="arch-node__expand">Expand</span>
           </button>
         </div>
 
         <div class="arch-layer">
           <button class="arch-node" type="button" id="node-import" data-modal="arch-import">
-            <span class="arch-node__icon" aria-hidden="true">▾</span>
+            <span class="arch-node__icon" aria-hidden="true">▽</span>
             <span class="arch-node__title">Import Service</span>
-            <span class="arch-node__desc">Reads the external source and builds entities.</span>
+            <span class="arch-node__desc">Reads the outside source into records.</span>
             <span class="arch-node__expand">Expand</span>
           </button>
           <button class="arch-node arch-node--system" type="button" id="node-persistence" data-modal="arch-persistence">
-            <span class="arch-node__badge">System · 2 parts</span>
+            <span class="arch-node__badge">System · 3 parts</span>
             <span class="arch-node__icon" aria-hidden="true">▤</span>
             <span class="arch-node__title">Persistence System</span>
-            <span class="arch-node__desc">Stores and retrieves entities through the ORM.</span>
+            <span class="arch-node__desc">Stores records and reads them back.</span>
             <span class="arch-node__expand">Open system</span>
           </button>
         </div>
 
         <div class="arch-layer">
-          <button class="arch-node" type="button" id="node-model" data-modal="arch-model">
-            <span class="arch-node__icon" aria-hidden="true">▣</span>
-            <span class="arch-node__title">Domain Model</span>
-            <span class="arch-node__desc">The entity that flows through every layer.</span>
+          <button class="arch-node" type="button" id="node-source" data-modal="arch-source">
+            <span class="arch-node__icon" aria-hidden="true">▢</span>
+            <span class="arch-node__title">JSON Source</span>
+            <span class="arch-node__desc">The external file the records come from.</span>
             <span class="arch-node__expand">Expand</span>
           </button>
         </div>
 
         <ul class="arch-edges" hidden>
-          <li data-from="node-root" data-to="node-orchestration" data-label="resolves &amp; runs"></li>
-          <li data-from="node-orchestration" data-to="node-import" data-label="imports via"></li>
-          <li data-from="node-orchestration" data-to="node-persistence" data-label="persists via" data-aggregate></li>
-          <li data-from="node-import" data-to="node-model" data-label="produces"></li>
-          <li data-from="node-persistence" data-to="node-model" data-label="stores" data-aggregate></li>
+          <li data-from="node-root" data-to="node-orchestrator" data-label="builds &amp; starts"></li>
+          <li data-from="node-orchestrator" data-to="node-import" data-label="loads via"></li>
+          <li data-from="node-orchestrator" data-to="node-persistence" data-label="stores &amp; reads" data-aggregate></li>
+          <li data-from="node-import" data-to="node-source" data-label="reads file"></li>
         </ul>
       </div>
 
       <ul class="visually-hidden">
-        <li>The Composition Root resolves and runs the Orchestration Service.</li>
-        <li>The Orchestration Service imports entities via the Import Service and persists them via the Persistence System.</li>
-        <li>The Import Service produces Domain Model entities; the Persistence System stores Domain Model entities.</li>
-        <li>Inside the Persistence System, the Repository saves through the Database Context.</li>
+        <li>The Composition Root builds and starts the Orchestration Service.</li>
+        <li>The Orchestration Service loads records via the Import Service.</li>
+        <li>The Orchestration Service stores and reads records via the Persistence System.</li>
+        <li>The Import Service reads the JSON Source file.</li>
+        <li>Inside the Persistence System, the Repository queries via the Persistence Context, which maps the Domain Model to rows.</li>
       </ul>
     </section>
-
     <hr class="section-divider">
 
     <section class="chapter-section">
       <header class="section-heading">
-        <span class="eyebrow">Dependency Direction</span>
-        <h2>Which Way the Arrows Point</h2>
-        <p class="section-subhead">Why every dependency flows toward an interface, never toward a concrete class.</p>
+        <span class="eyebrow">Reading the Map</span>
+        <h2>How Data Moves Through the Layers</h2>
+        <p class="section-subhead">There's one trip out to fetch data and one trip back to show it, and the arrows tell you who is allowed to talk to whom.</p>
       </header>
       <div class="prose">
-        <p>The arrows in the map are dependencies, and their direction is the whole discipline of the
-          pattern. The Orchestration Service depends on the <code>IRepository</code> and
-          <code>IImportService</code> interfaces, not on the classes that implement them. The Repository
-          depends on the Database Context. None of these objects construct their collaborators; each
-          receives them through its constructor.</p>
-        <p>Because the dependencies target interfaces, the concrete graph is assembled in exactly one
-          place: the Composition Root on the far left. It is the only component that names concrete
-          classes. Every other component could be compiled against the interfaces alone. That is what
-          makes a layer replaceable: swap the registration in the root, and nothing upstream changes.</p>
+        <p>Trace a single run left to right. The Composition Root is the only box that touches every other box, and it does its job once: it registers the layers, builds the object graph, and asks for the Orchestration Service. From that point on, the root is done and the conductor takes over.</p>
+        <p>The Orchestration Service reaches two ways. It asks the Import Service to load records, and the Import Service in turn reads the JSON Source off disk and parses it. Then the orchestrator hands those records to the Persistence System to store, and asks for them back to print. Notice what's missing from the diagram: there's no arrow from the Orchestration Service straight to the JSON Source, and none from the Import Service into the database. Each layer reaches exactly one step further and no more. That restraint is the architecture.</p>
       </div>
-    </section>
-
-    <hr class="section-divider">
-
-    <section class="chapter-section">
-      <header class="section-heading">
-        <span class="eyebrow">One Run</span>
-        <h2>Flow of a Single Execution</h2>
-        <p class="section-subhead">The sequence of calls from program start to printed output.</p>
-      </header>
+      <div class="card-grid">
+        <article class="info-card">
+          <h3>Dependencies point one way</h3>
+          <p>Arrows flow from caller to callee and never loop back. The orchestrator knows about the import and persistence layers; neither of them has ever heard of the orchestrator. That one-way rule is what keeps changes contained.</p>
+        </article>
+        <article class="info-card">
+          <h3>The database hides inside a system</h3>
+          <p>Three persistence pieces are folded into one node so the top-level map stays a clean line. Open it to see the Repository, the Persistence Context, and the Domain Model that live behind that single boundary.</p>
+        </article>
+      </div>
       <div class="prose">
-        <p>Reading the map left to right also reads the runtime sequence. The Composition Root builds
-          the provider and resolves the Orchestration Service. The service asks the Import Service for
-          entities, which reads the external source and deserializes it into Domain Models. The service
-          hands those entities to the Persistence System, which writes them through the Database Context
-          and can read them back. The service formats the retrieved entities into output. Control
-          returns to the root, the provider is disposed, and the program ends.</p>
-        <p>Every step crosses exactly one interface boundary, and no step reaches around a layer to
-          touch a layer two levels down. That restraint is what keeps each layer independently testable
-          and independently replaceable.</p>
+        <p>That collapsed Persistence System is worth opening now, because the next several chapters live inside it. Click it in the map above and you'll see the same one-way flow at a smaller scale. Then we start building, beginning with the one piece every arrow eventually carries: the Domain Model.</p>
       </div>
     </section>
   </main>
@@ -167,23 +150,19 @@
       <p class="modal__eyebrow">Component</p>
       <h2 class="modal__title" id="arch-root-title">Composition Root</h2>
       <div class="modal__body">
-        <p>The only component that knows the concrete types. It registers each interface against its
-          implementation in the DI container, builds the provider, creates the database, and resolves
-          the Orchestration Service to start the run. Covered in Chapter 11.</p>
+        <p>The startup block that owns assembly. It registers each interface against a concrete implementation, registers the Persistence Context against a database provider, builds the container, then resolves and runs the Orchestration Service. It's the one place in the program that names concrete types, which is exactly why nothing else has to.</p>
       </div>
     </div>
   </div>
 
-  <div class="modal" id="arch-orchestration" role="dialog" aria-modal="true" aria-labelledby="arch-orchestration-title" hidden>
+  <div class="modal" id="arch-orchestrator" role="dialog" aria-modal="true" aria-labelledby="arch-orchestrator-title" hidden>
     <div class="modal__backdrop" data-close></div>
     <div class="modal__dialog" role="document">
       <button class="modal__close" type="button" data-close aria-label="Close">×</button>
       <p class="modal__eyebrow">Component</p>
-      <h2 class="modal__title" id="arch-orchestration-title">Orchestration Service</h2>
+      <h2 class="modal__title" id="arch-orchestrator-title">Orchestration Service</h2>
       <div class="modal__body">
-        <p>The use case. It receives the Import Service and the Repository through its constructor and
-          calls them in order: import, persist, retrieve, output. It contains the control flow but no
-          persistence or parsing detail. Covered in Chapter 10.</p>
+        <p>The conductor. It depends on the Import Service and the Repository through their interfaces and does no parsing or persistence itself. Its single responsibility is sequence: load, store, retrieve, present. Because it only knows abstractions, it's the easiest layer in the system to test.</p>
       </div>
     </div>
   </div>
@@ -195,13 +174,24 @@
       <p class="modal__eyebrow">Component</p>
       <h2 class="modal__title" id="arch-import-title">Import Service</h2>
       <div class="modal__body">
-        <p>The boundary to the outside world. It locates the external source, reads it, deserializes it
-          into Domain Models, and validates that the source exists. Replacing the source format means
-          replacing this one class. Covered in Chapter 9.</p>
+        <p>The boundary to the outside world. It locates the source file, guards against it being missing, reads the bytes, and deserializes them into Domain Model records. Everything fragile about external input, paths, file existence, malformed data, is contained here so the rest of the pipeline can assume clean records.</p>
       </div>
     </div>
   </div>
 
+  <div class="modal" id="arch-source" role="dialog" aria-modal="true" aria-labelledby="arch-source-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">External</p>
+      <h2 class="modal__title" id="arch-source-title">JSON Source</h2>
+      <div class="modal__body">
+        <p>The raw input: a JSON file copied next to the binaries at build time. It sits outside the program's own types, which is why the Import Service exists to translate it. Swap this for an HTTP endpoint or a CSV file and only the Import Service changes.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- System node modal: nested graph of persistence internals -->
   <div class="modal modal--wide" id="arch-persistence" role="dialog" aria-modal="true" aria-labelledby="arch-persistence-title" hidden>
     <div class="modal__backdrop" data-close></div>
     <div class="modal__dialog" role="document">
@@ -209,44 +199,37 @@
       <p class="modal__eyebrow">System</p>
       <h2 class="modal__title" id="arch-persistence-title">Persistence System</h2>
       <div class="modal__body">
-        <p>Collapsed in the main map to keep it readable. Inside, a Repository exposes a narrow
-          persistence interface and delegates to a Database Context, which is the ORM's view of the
-          store. Callers see only the Repository interface; the Database Context never leaks upward.</p>
+        <p>Collapsed in the main map to keep the diagram a straight line. Inside, a thin Repository talks to a Persistence Context, which maps the Domain Model onto database rows. The Repository is the only part the outside world ever names; the context and the model stay tucked behind it.</p>
         <div class="arch-graph arch-graph--nested" id="arch-persistence-graph">
           <div class="arch-layer">
             <button class="arch-node" type="button" id="node-repository" data-modal="arch-repository">
               <span class="arch-node__icon" aria-hidden="true">▦</span>
               <span class="arch-node__title">Repository</span>
-              <span class="arch-node__desc">A small interface over persistence.</span>
+              <span class="arch-node__desc">The database-free interface callers use.</span>
               <span class="arch-node__expand">Expand</span>
             </button>
           </div>
           <div class="arch-layer">
             <button class="arch-node" type="button" id="node-context" data-modal="arch-context">
+              <span class="arch-node__icon" aria-hidden="true">▥</span>
+              <span class="arch-node__title">Persistence Context</span>
+              <span class="arch-node__desc">The ORM context over the database.</span>
+              <span class="arch-node__expand">Expand</span>
+            </button>
+          </div>
+          <div class="arch-layer">
+            <button class="arch-node" type="button" id="node-model" data-modal="arch-model">
               <span class="arch-node__icon" aria-hidden="true">▤</span>
-              <span class="arch-node__title">Database Context</span>
-              <span class="arch-node__desc">The ORM's mapping to the store.</span>
+              <span class="arch-node__title">Domain Model</span>
+              <span class="arch-node__desc">The record stored as a row.</span>
               <span class="arch-node__expand">Expand</span>
             </button>
           </div>
           <ul class="arch-edges" hidden>
-            <li data-from="node-repository" data-to="node-context" data-label="saves through"></li>
+            <li data-from="node-repository" data-to="node-context" data-label="queries via"></li>
+            <li data-from="node-context" data-to="node-model" data-label="maps to rows"></li>
           </ul>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal" id="arch-model" role="dialog" aria-modal="true" aria-labelledby="arch-model-title" hidden>
-    <div class="modal__backdrop" data-close></div>
-    <div class="modal__dialog" role="document">
-      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
-      <p class="modal__eyebrow">Component</p>
-      <h2 class="modal__title" id="arch-model-title">Domain Model</h2>
-      <div class="modal__body">
-        <p>A plain object with fields and mapping attributes, and no behavior. It is the single shape
-          that the Import Service produces, the Persistence System stores, and the Orchestration Service
-          formats. Covered in Chapter 6.</p>
       </div>
     </div>
   </div>
@@ -258,9 +241,7 @@
       <p class="modal__eyebrow">Component</p>
       <h2 class="modal__title" id="arch-repository-title">Repository</h2>
       <div class="modal__body">
-        <p>Exposes only the persistence operations the application needs (add, read, count) and hides
-          the ORM behind them. Callers depend on its interface, so the backing store can change without
-          touching them. Covered in Chapter 8.</p>
+        <p>A small interface, three or four methods, that lets callers add and fetch records without knowing a database is involved. It owns the change-tracking and save calls so nobody above it has to. This is the seam where you could replace the entire storage engine and break nothing upstream.</p>
       </div>
     </div>
   </div>
@@ -270,34 +251,44 @@
     <div class="modal__dialog" role="document">
       <button class="modal__close" type="button" data-close aria-label="Close">×</button>
       <p class="modal__eyebrow">Component</p>
-      <h2 class="modal__title" id="arch-context-title">Database Context</h2>
+      <h2 class="modal__title" id="arch-context-title">Persistence Context</h2>
       <div class="modal__body">
-        <p>The ORM context. It declares which entities are persisted and configures how each maps to a
-          table. It is constructed by the DI container from options set in the Composition Root.
-          Covered in Chapter 7.</p>
+        <p>The Entity Framework Core context. It exposes the set of records, configures how the Domain Model maps to a table, and receives its database provider from the outside through its options. Choosing in-memory versus a real database happens at registration, not in this class.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="arch-model" role="dialog" aria-modal="true" aria-labelledby="arch-model-title" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <p class="modal__eyebrow">Component</p>
+      <h2 class="modal__title" id="arch-model-title">Domain Model</h2>
+      <div class="modal__body">
+        <p>A plain class with a handful of properties and no behavior. It carries a key plus serialization hints so it can double as both the JSON shape and the database row. Every other component passes instances of it around; it's the shared vocabulary of the whole pipeline.</p>
       </div>
     </div>
   </div>
 
   <nav class="chapter-nav" aria-label="Chapter navigation">
-    <a class="chapter-nav__link chapter-nav__prev" href="03-quick-start.html">
+    <a class="chapter-nav__link chapter-nav__prev" href="03-prerequisites.html">
       <span class="chapter-nav__dir">← Previous</span>
       <span class="chapter-nav__label">
         <span class="chapter-nav__num">Chapter 3</span>
-        <span class="chapter-nav__title">Quick Start Guide</span>
+        <span class="chapter-nav__title">Prerequisites</span>
       </span>
     </a>
-    <a class="chapter-nav__link chapter-nav__next" href="05-helpful-resources.html">
+    <a class="chapter-nav__link chapter-nav__next" href="05-domain-model.html">
       <span class="chapter-nav__dir">Next →</span>
       <span class="chapter-nav__label">
         <span class="chapter-nav__num">Chapter 5</span>
-        <span class="chapter-nav__title">Helpful Resources</span>
+        <span class="chapter-nav__title">Domain Model</span>
       </span>
     </a>
   </nav>
 
   <footer class="site-footer">
-    <p class="site-footer__colophon">A development-pattern-guide tutorial · Layered Architecture with Dependency Injection</p>
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
   </footer>
 </body>
 </html>

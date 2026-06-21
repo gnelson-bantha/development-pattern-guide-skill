@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<!-- TEMPLATE-GUIDE — delete this entire comment when generating a page
+  development-pattern-guide · CHAPTER PAGE TEMPLATE
+  ----------------------------------------------------------------------------
+  Copy this file to <NN>-<slug>.html for each chapter and fill the placeholders.
+  Placeholders use {{DOUBLE_BRACES}} — replace ALL of them (none may remain).
+
+    {{PAGE_TITLE}}        Plain-text <title> (e.g. "Chapter 3 · Data Model")
+    {{CHAPTER_NUMBER}}    Display label for the eyebrow (e.g. "Chapter 3")
+    {{CHAPTER_TITLE}}     Chapter heading. A plain, specific, descriptive name for
+                          the subject, written for an engineer (e.g. "Composition
+                          Root", "Repository Layer") — not decorative/"artistic"
+                          phrasing ("The Heart of the System") or a prose
+                          instruction ("Start with the data"). Title case. HTML
+                          allowed: <em> for emphasis. No em-dashes in the title.
+    {{CHAPTER_SUBHEAD}}   One-sentence subtitle describing what the chapter covers
+    {{ASSETS}}            Relative path to the assets folder (usually "assets")
+    {{TOC_LINKS}}         <li> items for the fly-out TOC (see toc-template notes);
+                          IDENTICAL on every page. guide.js marks the current one.
+    {{SITE_TITLE}}        Short site/brand name shown in the header
+    {{CHAPTER_BODY}}      One or more <section class="chapter-section"> blocks,
+                          separated by <hr class="section-divider">. Each section
+                          has a header (title + subhead) and content. See the
+                          "SECTION PATTERN" comment below.
+    {{PREV_*}} / {{NEXT_*}}  Footer navigation. Omit the whole <a> if there is no
+                          previous/next chapter (the next button stays right-aligned).
+    {{FOOTER_TEXT}}       Colophon line in the site footer.
+  ----------------------------------------------------------------------------
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{PAGE_TITLE}}</title>
+  <link rel="stylesheet" href="{{ASSETS}}/default-global.css">
+  <!-- highlight.js (bundled, offline) must load before guide.js; defer keeps order -->
+  <script src="{{ASSETS}}/vendor/highlight.min.js" defer></script>
+  <script src="{{ASSETS}}/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Fly-out Table of Contents — identical on every page -->
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        {{TOC_LINKS}}
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">{{SITE_TITLE}}</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">{{CHAPTER_NUMBER}}</p>
+      <h1 class="chapter-title">{{CHAPTER_TITLE}}</h1>
+      <p class="chapter-subhead">{{CHAPTER_SUBHEAD}}</p>
+    </header>
+
+    {{CHAPTER_BODY}}
+    <!-- TEMPLATE-GUIDE — delete this comment when generating a page
+      SECTION PATTERN — repeat per logical chunk, divided by a stylized rule.
+
+      Content rules (see SKILL.md §7):
+        · Teach the WHY, not only the how: explain the motivation, the trade-offs,
+          and the consequences of each step, and tie it back to the pattern. Avoid
+          shallow "type this then type that" sections with no rationale.
+        · Write like two engineers talking shop over coffee, not like a
+          whitepaper. Warm, plain-spoken, a little wry, occasionally thinking out
+          loud. Use "you", contractions, and first-person plural "we" freely;
+          you may ask the odd rhetorical question, drop a casual aside, use light
+          humor when it lands, and use a concrete analogy sparingly when it makes
+          an idea click. NEVER use first-person singular "I". Casual is NOT
+          sales-pitch: still no flowery or marketing words ("powerful",
+          "seamless", "elegantly", "unlock"). Keep technical terms and
+          identifiers exact. Vary sentence structure and length (throw in a short
+          sentence now and then) and avoid AI tells: no formulaic openers ("In
+          this section, we will…"), no "short noun phrase, colon, explanation"
+          paragraph starts, no hollow summaries that restate the heading.
+        · Make it flow: let sections lead into one another and don't end on a
+          bare code block or an abrupt one-liner. Open the chapter by orienting
+          the reader against what came before and close it with a short bridge to
+          the next chapter (skip the bridge that doesn't apply on the first/last
+          chapter).
+        · The <h2> title is a plain, specific, descriptive name for the thing
+          (e.g. "Domain Model"), not decorative/"artistic" phrasing ("The Heart of
+          the System") or a prose instruction ("Start with the data"). Title case.
+          Put the "what this covers" wording in the subhead.
+        · The .section-subhead must NOT be templated — this is where AI tells show
+          up most. Do not reuse a fixed frame ("Why the…", "What the…", "How the…",
+          "The X that …, and why …") or the "short phrase, colon, explanation"
+          shape. Within a chapter, no two subheads share the same opening
+          structure: mix full casual sentences, the occasional question, and short
+          spoken-sounding remarks.
+        · Do NOT use em-dashes anywhere in the rendered content; use commas,
+          parentheses, a colon, or separate sentences instead.
+
+      <section class="chapter-section">
+        <header class="section-heading">
+          <span class="eyebrow">Step 1</span>
+          <h2>Specific Subject</h2>
+          <p class="section-subhead">What this section covers.</p>
+        </header>
+        <div class="prose">
+          <p>Explain what is done, then why it is done this way and what it trades off…</p>
+        </div>
+        <pre class="codeblock"><code>// code where applicable</code></pre>
+      </section>
+      <hr class="section-divider">
+    -->
+  </main>
+
+  <!-- Footer chapter navigation: prev left, next right -->
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="{{PREV_HREF}}">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">{{PREV_NUMBER}}</span>
+        <span class="chapter-nav__title">{{PREV_TITLE}}</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="{{NEXT_HREF}}">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">{{NEXT_NUMBER}}</span>
+        <span class="chapter-nav__title">{{NEXT_TITLE}}</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">{{FOOTER_TEXT}}</p>
+  </footer>
+</body>
+</html>

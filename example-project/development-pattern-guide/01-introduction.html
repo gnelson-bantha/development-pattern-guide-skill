@@ -16,19 +16,18 @@
     <div class="toc-flyout__panel" id="toc-flyout-panel">
       <p class="toc-flyout__title">Contents</p>
       <ol class="toc-flyout__list">
-        <li><a class="toc-flyout__link" href="index.html"><span class="num">00</span><span>Contents</span></a></li>
         <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
-        <li><a class="toc-flyout__link" href="02-prerequisites.html"><span class="num">02</span><span>Prerequisites</span></a></li>
-        <li><a class="toc-flyout__link" href="03-quick-start.html"><span class="num">03</span><span>Quick Start Guide</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
         <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
-        <li><a class="toc-flyout__link" href="05-helpful-resources.html"><span class="num">05</span><span>Helpful Resources</span></a></li>
-        <li><a class="toc-flyout__link" href="06-the-domain-model.html"><span class="num">06</span><span>The Domain Model</span></a></li>
-        <li><a class="toc-flyout__link" href="07-the-database-context.html"><span class="num">07</span><span>The Database Context</span></a></li>
-        <li><a class="toc-flyout__link" href="08-the-repository-layer.html"><span class="num">08</span><span>The Repository Layer</span></a></li>
-        <li><a class="toc-flyout__link" href="09-the-import-service.html"><span class="num">09</span><span>The Import Service</span></a></li>
-        <li><a class="toc-flyout__link" href="10-the-orchestration-service.html"><span class="num">10</span><span>The Orchestration Service</span></a></li>
-        <li><a class="toc-flyout__link" href="11-the-composition-root.html"><span class="num">11</span><span>The Composition Root</span></a></li>
-        <li><a class="toc-flyout__link" href="12-extending-the-system.html"><span class="num">12</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
       </ol>
     </div>
   </nav>
@@ -36,7 +35,7 @@
   <header class="site-header">
     <a class="site-brand" href="index.html">
       <span class="site-brand__mark">◆</span>
-      <span class="site-brand__name">Layered DI Guide</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
     </a>
     <p class="site-header__meta">Pattern Tutorial</p>
   </header>
@@ -45,132 +44,87 @@
     <header class="chapter-header">
       <p class="chapter-eyebrow">Chapter 1</p>
       <h1 class="chapter-title">Introduction</h1>
-      <p class="chapter-subhead">What layered architecture with dependency injection is, the problem it solves, and the trade-offs it makes.</p>
+      <p class="chapter-subhead">A four-line program hides a surprisingly clean pattern. Let's name it before we build it.</p>
     </header>
 
-    <section class="chapter-section">
+    <section class="chapter-section dot-fade">
       <header class="section-heading">
-        <span class="eyebrow">The Pattern</span>
-        <h2>Layered Architecture with Dependency Injection</h2>
-        <p class="section-subhead">A single sentence to anchor everything that follows.</p>
+        <span class="eyebrow">The Idea</span>
+        <h2>What We're Actually Building</h2>
+        <p class="section-subhead">Strip away the domain and it's the same job a thousand programs do: take data from somewhere, keep it, hand it back.</p>
       </header>
       <div class="prose">
-        <p>This guide teaches one pattern: split an application into layers that each own a single
-          concern, define the boundary between layers as an interface, and let a single composition
-          root construct the concrete implementations and inject them into the objects that depend
-          on them. Nothing constructs its own dependencies; everything receives them.</p>
-        <p>The example the pattern is drawn from is small on purpose. A console program reads records
-          from a JSON file, stores them in a database through an ORM, reads them back, and prints
-          them. That is enough work to need four distinct responsibilities (model, persistence,
-          import, orchestration) and a place to wire them together. Those five pieces are the whole
-          pattern, and every chapter after this one builds one of them.</p>
+        <p>Here's the whole task in one breath: read a list of records from a file, store them in a database, read them back out, and print them. You could write that in twenty lines inside <code>Main</code> and go home. Plenty of people do, and for a throwaway script that's the right call.</p>
+        <p>But watch what happens when the script stops being throwaway. The file becomes an HTTP endpoint. The database picks up a second table. Someone asks for the records sorted, or filtered, or exported as CSV instead of printed. Every one of those changes lands in the same giant <code>Main</code>, and they all touch each other. Parsing breaks persistence; persistence breaks formatting. You're editing one method that knows everything, which means it's hard to test, hard to read, and risky to change.</p>
+        <p>The pattern in this guide is the antidote, and it's older than any framework you're using. Split the work into stages. Give each stage one job and a small interface. Let each stage depend on the <em>idea</em> of the next stage, not its guts. Then assemble the whole chain in exactly one place. That one place is the only part of the program that knows the concrete types; everything else just talks to interfaces.</p>
       </div>
     </section>
-
     <hr class="section-divider">
 
     <section class="chapter-section">
       <header class="section-heading">
-        <span class="eyebrow">Motivation</span>
-        <h2>The Problem It Solves</h2>
-        <p class="section-subhead">Why a single file of procedural code stops working as a program grows.</p>
+        <span class="eyebrow">The Stages</span>
+        <h2>The Four Jobs and Their Boundaries</h2>
+        <p class="section-subhead">Name the jobs out loud and the layers fall out almost for free.</p>
       </header>
       <div class="prose">
-        <p>The naive version of this program is one function: open the file, parse the JSON, open a
-          database connection, write the rows, read them back, print them. It works, and for a script
-          that runs once it is the correct amount of code. It stops being correct the moment any part
-          of it needs to change independently of the others.</p>
-        <p>Consider the pressures that arrive over time. The data might come from an HTTP endpoint
-          instead of a file. The store might move from an in-memory database to a real one. You might
-          want a unit test that checks the orchestration logic without touching a disk or a database
-          at all. In the single-function version, every one of these changes edits the same code, and
-          none of them can be tested in isolation, because the parsing, the persistence, and the
-          control flow are fused together.</p>
-        <p>Layering separates these concerns so each can change on its own. Dependency injection is
-          the mechanism that keeps them separated: because a layer receives its collaborators through
-          its constructor rather than creating them, you can hand it a real collaborator in production
-          and a fake one in a test, and the layer cannot tell the difference.</p>
+        <p>So what are the stages? Say the task slowly and they announce themselves. <em>Read records from a file</em>, that's one job: an Import Service that owns the boundary to the outside world. <em>Store them and read them back</em>, that's persistence, and it splits into two pieces, a Persistence Context that knows how to talk to the database engine and a Repository that gives the rest of the code a tiny, database-free way to ask for records. <em>Run those steps in order and present the result</em>, that's an Orchestration Service, the conductor that doesn't do any of the real work itself but knows the sequence.</p>
+        <p>And the record that flows through all of it? That's the Domain Model, a plain little class with no behavior, just fields. It's the common currency every layer trades in.</p>
+        <p>Notice that each stage is defined by a <strong>boundary</strong>, not by an algorithm. The Import Service is "where bytes from outside become records." The Repository is "where code stops caring how storage works." Drawing those boundaries well is the whole skill, and it's what makes the layers swappable later.</p>
       </div>
+      <pre class="codeblock"><code class="language-text">locations.json
+     │  read &amp; parse
+     ▼
+Import Service ──► Domain Model records
+     │
+     ▼  hand to
+Orchestration Service ──► Repository ──► Persistence Context ──► database
+                              ▲                                     │
+                              └──────────── read back ─────────────┘
+     │
+     ▼  present
+   console</code></pre>
     </section>
-
     <hr class="section-divider">
 
     <section class="chapter-section">
       <header class="section-heading">
-        <span class="eyebrow">Structure</span>
-        <h2>The Five Roles</h2>
-        <p class="section-subhead">The participants in the pattern and the responsibility each one holds.</p>
+        <span class="eyebrow">The Glue</span>
+        <h2>Composition Root and Dependency Injection</h2>
+        <p class="section-subhead">If the layers never name each other, something has to introduce them. That something is one small block of startup code.</p>
       </header>
       <div class="prose">
-        <p>The pattern assigns every line of code to one of five roles. The names below are the
-          general-purpose names this guide uses; each later chapter builds one role.</p>
+        <p>There's a catch in everything we just said. If the Orchestration Service only knows the <code>IRepository</code> interface, who decides which concrete repository it actually gets? The layers deliberately don't construct each other, so the wiring has to live somewhere outside all of them. That somewhere is the <strong>composition root</strong>: the single startup location where you register every interface against its real implementation and let a container build the object graph for you.</p>
+        <p>This is dependency injection, and the phrase sounds heavier than the idea. A class lists what it needs in its constructor and trusts that someone will hand those things over. It never reaches out and builds a database connection itself. The container does the handing-over. The payoff shows up the first time you write a test: pass a fake repository into the orchestrator's constructor and the real database never gets touched. Same wiring mechanism, different parts plugged in.</p>
       </div>
       <div class="card-grid">
         <article class="info-card">
-          <h3 class="info-card__title">Domain Model</h3>
-          <p class="info-card__body">A plain object describing the data that moves through the system. It carries no behavior, only fields and the attributes that map it to storage and to the external format.</p>
+          <h3>What you gain</h3>
+          <p>Each layer is testable in isolation, any implementation can be swapped without editing its callers, and there's exactly one file to read when you want to know how the program is assembled.</p>
         </article>
         <article class="info-card">
-          <h3 class="info-card__title">Database Context</h3>
-          <p class="info-card__body">The ORM's view of the store. It declares which entities are persisted and configures how each one maps to a table.</p>
-        </article>
-        <article class="info-card">
-          <h3 class="info-card__title">Repository</h3>
-          <p class="info-card__body">A small interface that exposes only the persistence operations the application needs, hiding the ORM behind it so callers never see it.</p>
-        </article>
-        <article class="info-card">
-          <h3 class="info-card__title">Import Service</h3>
-          <p class="info-card__body">The boundary to the outside world. It reads the external source, deserializes it, and produces domain models.</p>
-        </article>
-        <article class="info-card">
-          <h3 class="info-card__title">Orchestration Service</h3>
-          <p class="info-card__body">The use case. It calls the import service and the repository in order and turns their results into the program's output.</p>
-        </article>
-        <article class="info-card">
-          <h3 class="info-card__title">Composition Root</h3>
-          <p class="info-card__body">The one place that knows the concrete types. It registers each interface against its implementation, builds the provider, and starts the run.</p>
+          <h3>What it costs</h3>
+          <p>More files, more interfaces, and a layer of indirection. For a genuinely trivial script that's overhead. The pattern earns its keep the moment the script grows a second reason to change.</p>
         </article>
       </div>
-    </section>
-
-    <hr class="section-divider">
-
-    <section class="chapter-section">
-      <header class="section-heading">
-        <span class="eyebrow">Trade-offs</span>
-        <h2>What the Pattern Costs and What It Buys</h2>
-        <p class="section-subhead">An honest account of the indirection you take on and the freedom you gain.</p>
-      </header>
       <div class="prose">
-        <p>This pattern is not free. Every seam becomes an interface, so a program that could be one
-          file becomes a handful of small ones, and reading it top to bottom no longer shows the full
-          control flow in one place. For a one-off script this overhead is not worth paying, and you
-          should not pay it.</p>
-        <p>What you buy is substitution. Because each layer depends on the interface of the layer
-          below it and not the concrete class, you can replace the implementation without touching the
-          caller. The in-memory database becomes a real one by changing a single registration. The
-          file importer becomes an HTTP importer by writing a new class that implements the same
-          interface. A test replaces the repository with an in-memory list. The dependency arrows all
-          point inward toward the interfaces, and the composition root is the only code that knows the
-          concrete graph.</p>
-        <p>The rule of thumb: adopt this pattern when more than one of these substitutions is
-          plausible, and skip it when none of them is.</p>
+        <p>That tension, ceremony now versus flexibility later, is the central trade-off of the whole pattern, and we'll keep coming back to it. For the rest of the guide we build the layers one at a time, in dependency order, then meet at the composition root to snap them together. Next up, though, is the real codebase all of this was drawn from, so you can see the concrete version before we generalize it.</p>
       </div>
     </section>
   </main>
 
   <nav class="chapter-nav" aria-label="Chapter navigation">
-    <a class="chapter-nav__link chapter-nav__next" href="02-prerequisites.html">
+    <a class="chapter-nav__link chapter-nav__next" href="02-sourced-repository.html">
       <span class="chapter-nav__dir">Next →</span>
       <span class="chapter-nav__label">
         <span class="chapter-nav__num">Chapter 2</span>
-        <span class="chapter-nav__title">Prerequisites</span>
+        <span class="chapter-nav__title">Sourced Repository</span>
       </span>
     </a>
   </nav>
 
   <footer class="site-footer">
-    <p class="site-footer__colophon">A development-pattern-guide tutorial · Layered Architecture with Dependency Injection</p>
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
   </footer>
 </body>
 </html>

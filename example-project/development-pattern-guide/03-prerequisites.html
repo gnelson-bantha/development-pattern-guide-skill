@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 3 · Prerequisites</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 3</p>
+      <h1 class="chapter-title">Prerequisites</h1>
+      <p class="chapter-subhead">A short list of what to install and what to already be comfortable with before you start building the layers.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Toolchain</span>
+        <h2>SDK and Runtime</h2>
+        <p class="section-subhead">One install gets you the compiler, the runtime, and the command-line tooling in a single package.</p>
+      </header>
+      <div class="prose">
+        <p>You need the .NET SDK, version 10 or newer. The sample targets <code>net10.0</code>, and the SDK ships with everything you'll touch here: the C# compiler, the runtime that executes the program, and the <code>dotnet</code> command line for creating, building, and running projects. There's no separate runtime to chase down and no build server to stand up.</p>
+        <p>Confirm it's there before you write a line of code:</p>
+      </div>
+      <pre class="codeblock"><code class="language-bash">dotnet --version
+# should print 10.x or higher</code></pre>
+      <div class="prose">
+        <p>An editor with C# support makes the interfaces-everywhere style far more pleasant, because jumping from <code>IRepository</code> to its implementation becomes one keystroke instead of a folder hunt. Anything with the C# language tooling works; the pattern doesn't care which one you pick.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Packages</span>
+        <h2>Two NuGet Dependencies</h2>
+        <p class="section-subhead">The entire pattern leans on a persistence library and a container, and nothing more.</p>
+      </header>
+      <div class="prose">
+        <p>You'll add exactly two packages. The first is an Entity Framework Core provider, which is the object-relational mapper that turns your records into database rows. We use the in-memory provider here because it needs zero setup, but the point of the pattern is that you could swap it for SQLite or SQL Server later without disturbing the layers above it.</p>
+        <p>The second is the dependency injection container, which is the engine that reads your registrations and builds the object graph. Add both from the project directory:</p>
+      </div>
+      <pre class="codeblock"><code class="language-bash">dotnet add package Microsoft.EntityFrameworkCore.InMemory
+dotnet add package Microsoft.Extensions.DependencyInjection</code></pre>
+      <div class="callout">
+        <p class="callout-label">Why in-memory</p>
+        <p>The in-memory provider keeps the focus on structure instead of connection strings. Everything you learn about wiring the repository and context transfers directly to a real database; you change one registration line and the rest of the code never finds out.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">The Background</span>
+        <h2>What You Should Already Know</h2>
+        <p class="section-subhead">This is a structure lesson, not a first-day-of-C# lesson, so a few fundamentals are assumed.</p>
+      </header>
+      <div class="prose">
+        <p>The guide assumes you can read and write C# comfortably. Specifically, you'll be on solid ground if interfaces and classes are second nature, if you've seen constructor parameters used to pass dependencies in, and if generics like <code>List&lt;T&gt;</code> don't slow you down. We use a few modern C# conveniences without much ceremony: primary constructors (the parameters right on the class declaration), collection expressions like <code>[.. items]</code>, and top-level statements in <code>Program.cs</code>.</p>
+        <p>You don't need prior Entity Framework experience. We introduce the context and the repository from scratch, and the persistence chapter explains the handful of EF concepts you actually touch. You also don't need to know dependency injection going in; the composition root chapter builds that idea up from the constructors you'll already have written.</p>
+        <p>That's the whole checklist. With the SDK installed and the two packages ready, the next chapter steps back to show how all the layers connect before we build them one by one.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="02-sourced-repository.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 2</span>
+        <span class="chapter-nav__title">Sourced Repository</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="04-high-level-architecture.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 4</span>
+        <span class="chapter-nav__title">High Level Architecture</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

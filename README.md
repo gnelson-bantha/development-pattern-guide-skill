@@ -39,9 +39,10 @@ no network**. All assets, including fonts, are bundled locally.
 |----|--------------------------|--------------------------------------------------|
 | 0  | Table of Contents        | `index.html` landing page linking all chapters   |
 | 1  | Introduction             | What the pattern does at its core                |
-| 2  | Prerequisites            | Required tools, SDKs, accounts, assumed skills   |
-| 3  | High Level Architecture  | Core systems and data/request flow (cards→modals)|
-| 4..N | Pattern chapters       | Learn-by-doing core, one page each               |
+| 2  | Sourced Repository       | Technical overview of the real source repo (systems, sub-systems, classes) — the one chapter that uses real identifiers |
+| 3  | Prerequisites            | Required tools, SDKs, accounts, assumed skills   |
+| 4  | High Level Architecture  | Core systems and data/request flow (cards→modals)|
+| 5..N | Pattern chapters       | Learn-by-doing core, one page each               |
 | N  | Extending the System     | How to add features/plugins/modules              |
 | N  | Deployment               | When applicable (e.g. cloud / .NET Aspire)       |
 | N  | Appendix: Additional Reading | Curated URLs for the stack and concepts (absolute last) |
@@ -92,6 +93,15 @@ You can either tweak the existing CSS tokens or re-skin the whole guide from a
 supplied style guide, while preserving the required structure (fly-out TOC, section
 dividers, interactive cards, architecture modals, and prev/next navigation).
 
+You can also ask for specific sections to be given the optional **dot-fade**
+treatment — a gradient background with a navy dot-matrix overlay that fades in toward
+the right, with the section's text in a left column and the pattern in the right
+column. It ships in the default stylesheet and is applied only to the sections you name:
+
+```text
+Give the "What You'll Learn" section the dot-fade treatment in ./development-pattern-guide
+```
+
 ## Repository layout
 
 ```text
@@ -114,7 +124,9 @@ developer-guide-website/
 The skill ships with everything needed to produce a fully offline site, located under
 `.github/skills/development-pattern-guide/assets/`:
 
-- `default-global.css` — the default stylesheet.
+- `default-global.css` — the default stylesheet. Includes an optional `.dot-fade`
+  decorative section (gradient + navy dot-matrix overlay, text-left / pattern-right)
+  that can be applied to specific sections on request.
 - `guide.js` — fly-out TOC toggle, modal open/close, and current-page marking.
 - `fonts/` — bundled WOFF2 fonts (with `FONTS.md`).
 - `templates/` — `page-template.html`, `toc-template.html`,

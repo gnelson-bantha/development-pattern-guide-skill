@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 6 · Import Service</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 6</p>
+      <h1 class="chapter-title">Import Service</h1>
+      <p class="chapter-subhead">The records have a shape now. This layer is where messy outside data turns into those clean records, and where all the danger gets contained.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>An Interface First</h2>
+        <p class="section-subhead">Before the file-reading code, write the promise: one method that returns records and says nothing about where they came from.</p>
+      </header>
+      <div class="prose">
+        <p>We could jump straight to reading a file. Instead, write the contract first, because the contract is the part the rest of the system depends on, and it's deliberately silent about JSON:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using Pipeline.Models;
+
+namespace Pipeline.Services;
+
+public interface IImportService
+{
+    List&lt;DataRecord&gt; LoadFromSource();
+}</code></pre>
+      <div class="prose">
+        <p>Read that interface and you learn nothing about files, paths, or serialization. You learn that you can ask for records and you'll get a list back. That silence is the feature. The Orchestration Service will depend on <code>IImportService</code>, and because the interface never mentions JSON, the day you switch from a file to an HTTP call, the orchestrator's code doesn't change by a single character. The boundary was drawn at "give me records," not at "read this file," and that's the difference between a swappable layer and a brittle one.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>Locating the Source File</h2>
+        <p class="section-subhead">Finding the file sounds trivial until you remember the program runs from a different folder than the one you wrote it in.</p>
+      </header>
+      <div class="prose">
+        <p>Now the implementation. The first real problem is just finding the file, and it's sneakier than it looks. You can't hardcode a path from your machine, and you can't assume the current working directory, because a compiled program might be launched from anywhere. What you can rely on is where the binaries live, and the data file is copied right next to them at build time.</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using System.Text.Json;
+using Pipeline.Models;
+
+namespace Pipeline.Services;
+
+public class JsonImportService : IImportService
+{
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    private readonly string _sourcePath =
+        Path.Combine(AppContext.BaseDirectory, "Data", "records.json");
+
+    public List&lt;DataRecord&gt; LoadFromSource()
+    {
+        if (!File.Exists(_sourcePath))
+        {
+            throw new FileNotFoundException(
+                $"Could not find the source data file at '{_sourcePath}'.",
+                _sourcePath);
+        }
+
+        string json = File.ReadAllText(_sourcePath);
+        List&lt;DataRecord&gt;? records =
+            JsonSerializer.Deserialize&lt;List&lt;DataRecord&gt;&gt;(json, SerializerOptions);
+
+        return records ?? [];
+    }
+}</code></pre>
+      <div class="prose">
+        <p><code>AppContext.BaseDirectory</code> is the folder the running assembly sits in, so combining it with <code>Data/records.json</code> finds the file no matter where the program was started from. Pair that with the build setting that copies the file next to the output (we'll register that in the project), and the path just works on every machine. It's a small thing that quietly prevents the classic "works on my machine, missing file in production" bug.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>Two Failures, Handled Differently</h2>
+        <p class="section-subhead">One of these problems should stop the program cold. The other absolutely should not. Here's the line between them.</p>
+      </header>
+      <div class="prose">
+        <p>The method guards against two very different kinds of "nothing to load," and treating them the same would be a mistake. A missing file is a broken setup. Someone forgot to ship the data, or the build didn't copy it. The program literally cannot do its job, so we throw a <code>FileNotFoundException</code> with the full path baked into the message. Fail loudly, fail early, and hand whoever's debugging the exact path that didn't exist.</p>
+        <p>An empty result is a different animal. The file is right there, it parsed fine, it just happened to contain an empty array, or the deserializer handed back <code>null</code> for a body that was literally the text "null". That's not an error; that's a valid file with no records. So <code>records ?? []</code> turns that <code>null</code> into an empty list and the program carries on with zero records, which is a perfectly reasonable thing to have. The caller never has to null-check the return value, ever.</p>
+      </div>
+      <div class="card-grid">
+        <article class="info-card">
+          <h3>Crash on a broken contract</h3>
+          <p>A missing file means the program was assembled wrong. There's no graceful way to proceed, so throwing with the offending path is the kindest thing you can do for the next person.</p>
+        </article>
+        <article class="info-card">
+          <h3>Shrug off an empty one</h3>
+          <p>Zero records is a number, not a failure. Returning an empty list keeps every caller free of null checks and lets the pipeline run end to end with nothing in it.</p>
+        </article>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 3</span>
+        <h2>Case-Insensitive Parsing</h2>
+        <p class="section-subhead">A tiny options object here buys you forgiveness for the difference between JSON conventions and C# conventions.</p>
+      </header>
+      <div class="prose">
+        <p>That <code>SerializerOptions</code> object exists for one reason, and it's a reason worth knowing. JSON files in the wild tend to use camelCase or lowercase keys (<code>name</code>, <code>category</code>), while C# properties are PascalCase (<code>Name</code>, <code>Category</code>). Turning on <code>PropertyNameCaseInsensitive</code> tells the deserializer to match them regardless of casing, so you're not forced to annotate every single property just to bridge the gap. Combined with the <code>[JsonPropertyName]</code> hints already on the model, the parsing is forgiving without being sloppy.</p>
+        <p>Notice it's <code>static readonly</code>, built once and shared. Serializer options are reusable and there's a real (if small) cost to constructing them, so there's no reason to make a fresh one on every call. A minor optimization, but it's the kind of detail that signals the code was written with some care.</p>
+        <p>So this layer reads bytes, deals with both failure modes, and produces clean records. What it pointedly does not do is store anything. Where those records go next is the persistence side, and that starts with the context that knows how to talk to a database.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="05-domain-model.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 5</span>
+        <span class="chapter-nav__title">Domain Model</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="07-persistence-context.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 7</span>
+        <span class="chapter-nav__title">Persistence Context</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

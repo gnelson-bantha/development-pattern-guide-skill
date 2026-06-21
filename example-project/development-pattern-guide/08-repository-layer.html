@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 8 · Repository Layer</title>
+  <link rel="stylesheet" href="assets/default-global.css">
+  <script src="assets/vendor/highlight.min.js" defer></script>
+  <script src="assets/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="toc-flyout" aria-label="Table of contents">
+    <button class="toc-flyout__tab" type="button" aria-controls="toc-flyout-panel">Contents</button>
+    <div class="toc-flyout__panel" id="toc-flyout-panel">
+      <p class="toc-flyout__title">Contents</p>
+      <ol class="toc-flyout__list">
+        <li><a class="toc-flyout__link" href="01-introduction.html"><span class="num">01</span><span>Introduction</span></a></li>
+        <li><a class="toc-flyout__link" href="02-sourced-repository.html"><span class="num">02</span><span>Sourced Repository</span></a></li>
+        <li><a class="toc-flyout__link" href="03-prerequisites.html"><span class="num">03</span><span>Prerequisites</span></a></li>
+        <li><a class="toc-flyout__link" href="04-high-level-architecture.html"><span class="num">04</span><span>High Level Architecture</span></a></li>
+        <li><a class="toc-flyout__link" href="05-domain-model.html"><span class="num">05</span><span>Domain Model</span></a></li>
+        <li><a class="toc-flyout__link" href="06-import-service.html"><span class="num">06</span><span>Import Service</span></a></li>
+        <li><a class="toc-flyout__link" href="07-persistence-context.html"><span class="num">07</span><span>Persistence Context</span></a></li>
+        <li><a class="toc-flyout__link" href="08-repository-layer.html"><span class="num">08</span><span>Repository Layer</span></a></li>
+        <li><a class="toc-flyout__link" href="09-orchestration-service.html"><span class="num">09</span><span>Orchestration Service</span></a></li>
+        <li><a class="toc-flyout__link" href="10-composition-root.html"><span class="num">10</span><span>Composition Root</span></a></li>
+        <li><a class="toc-flyout__link" href="11-extending-the-system.html"><span class="num">11</span><span>Extending the System</span></a></li>
+        <li><a class="toc-flyout__link" href="12-additional-reading.html"><span class="num">12</span><span>Appendix: Additional Reading</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <span class="site-brand__mark">◆</span>
+      <span class="site-brand__name">Layered Pipeline Guide</span>
+    </a>
+    <p class="site-header__meta">Pattern Tutorial</p>
+  </header>
+
+  <main id="main" class="container">
+    <header class="chapter-header">
+      <p class="chapter-eyebrow">Chapter 8</p>
+      <h1 class="chapter-title">Repository Layer</h1>
+      <p class="chapter-subhead">The context can talk to a database. This layer makes sure nobody else has to. It's a thin wall, and the thinness is the point.</p>
+    </header>
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 1</span>
+        <h2>The Smallest Useful Interface</h2>
+        <p class="section-subhead">List only the operations the program actually performs, and watch how much the rest of the code stops needing to know.</p>
+      </header>
+      <div class="prose">
+        <p>The repository is a thin wall between the rest of your code and the database. Code on this side asks for records; it never has to know they're sitting in an Entity Framework context. And the wall is defined, as always, by an interface first:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using Pipeline.Models;
+
+namespace Pipeline.Repositories;
+
+public interface IRepository
+{
+    void AddRange(IEnumerable&lt;DataRecord&gt; records);
+
+    List&lt;DataRecord&gt; GetAll();
+
+    int Count();
+}</code></pre>
+      <div class="prose">
+        <p>Three methods. That's the entire surface the rest of the program sees of persistence. There's a real temptation here to build the grand generic repository with <code>Find</code>, <code>Update</code>, <code>Delete</code>, paging, filtering, the works. Resist it. This pipeline adds records and reads them back, so the interface has exactly the methods this pipeline needs and not one more. A smaller interface is easier to implement, easier to fake in a test, and honest about what the system actually does. You can always add a method the day you genuinely need it.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 2</span>
+        <h2>The EF Core Implementation</h2>
+        <p class="section-subhead">All the database knowledge in the entire program gets to live in this one class, and that containment is the whole reward.</p>
+      </header>
+      <div class="prose">
+        <p>Here's the implementation. It takes the context through its constructor, just like everything else takes its dependencies:</p>
+      </div>
+      <pre class="codeblock"><code class="language-csharp">using Pipeline.Data;
+using Pipeline.Models;
+
+namespace Pipeline.Repositories;
+
+public class PipelineRepository(PipelineDbContext dbContext) : IRepository
+{
+    public void AddRange(IEnumerable&lt;DataRecord&gt; records)
+    {
+        dbContext.Records.AddRange(records);
+        dbContext.SaveChanges();
+    }
+
+    public List&lt;DataRecord&gt; GetAll() =&gt; [.. dbContext.Records];
+
+    public int Count() =&gt; dbContext.Records.Count();
+}</code></pre>
+      <div class="prose">
+        <p>This is the only class in the whole program that mentions <code>DbContext</code>, <code>AddRange</code>, or <code>SaveChanges</code>. That's the payoff of the repository pattern stated plainly: every line of database-specific code is trapped inside this one file. If you decide tomorrow to store records in a flat file or call a web API instead, you write a new class that implements <code>IRepository</code> and nothing above it notices. The seam holds.</p>
+        <p>The <code>[.. dbContext.Records]</code> in <code>GetAll</code> is a collection expression that materializes the <code>DbSet</code> into a real <code>List</code>. That detail matters more than it looks. A <code>DbSet</code> is lazy; enumerate it and it hits the database. By spreading it into a list right here, we run the query inside the repository and hand back plain in-memory records. Callers get a list they can iterate twice, filter, or count without accidentally firing more database queries. The laziness stays contained, exactly like everything else about the database.</p>
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="chapter-section">
+      <header class="section-heading">
+        <span class="eyebrow">Step 3</span>
+        <h2>Owning the Save</h2>
+        <p class="section-subhead">Notice who calls SaveChanges, and notice who doesn't have to think about it ever again.</p>
+      </header>
+      <div class="prose">
+        <p>EF Core tracks changes in memory and only writes them when you call <code>SaveChanges</code>. That's flexible, but it's also a footgun: forget the call and your data silently never persists. So <code>AddRange</code> does the add and the save together, as one unit. A caller asks the repository to add records and trusts that when the method returns, they're stored. Full stop.</p>
+        <p>That's a deliberate decision about who carries the burden. The orchestration layer above shouldn't know that "adding" and "saving" are two separate steps in EF Core; that's a persistence detail, and persistence details belong down here. Bundling them keeps the contract simple ("add means stored") at the cost of a little flexibility (you can't batch many adds into one save). For this pipeline, simple wins, and that's usually the right instinct until a real performance need says otherwise.</p>
+        <p>With persistence sealed behind three methods, we finally have every worker the pipeline needs: a way to load records and a way to store and fetch them. What's missing is someone to run them in order. That's the Orchestration Service, next.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="chapter-nav" aria-label="Chapter navigation">
+    <a class="chapter-nav__link chapter-nav__prev" href="07-persistence-context.html">
+      <span class="chapter-nav__dir">← Previous</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 7</span>
+        <span class="chapter-nav__title">Persistence Context</span>
+      </span>
+    </a>
+    <a class="chapter-nav__link chapter-nav__next" href="09-orchestration-service.html">
+      <span class="chapter-nav__dir">Next →</span>
+      <span class="chapter-nav__label">
+        <span class="chapter-nav__num">Chapter 9</span>
+        <span class="chapter-nav__title">Orchestration Service</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer class="site-footer">
+    <p class="site-footer__colophon">Layered Pipeline Guide · a development pattern tutorial generated from a sample codebase.</p>
+  </footer>
+</body>
+</html>

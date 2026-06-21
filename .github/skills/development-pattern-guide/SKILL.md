@@ -113,6 +113,11 @@ real identifiers. For every system, sub-system, class, and library, derive a
 - Keep a **naming map** (real → general) for your own consistency; write the
   general names into pages and into `guide.json`. Never leak the originals into the
   rendered guide. (You may keep the map in memory; do not ship it in the site.)
+- **One exception: the "Sourced Repository" chapter** (Step 5). That chapter exists
+  to describe the *real* originating repository, so it **does** use the source's real
+  identifiers. This carve-out is **strictly limited to that single chapter** — every
+  other chapter, the TOC, the architecture node graph, and `guide.json` must still
+  use only the generalized names.
 
 ### Step 5 — Plan the chapters
 Order is fixed for the framing chapters; pattern chapters sit in the middle.
@@ -120,9 +125,16 @@ Order is fixed for the framing chapters; pattern chapters sit in the middle.
 **Required, in this order:**
 0. **Table of Contents** — `index.html` (pretty landing page; links to all chapters).
 1. **Introduction** — what this pattern does at its core.
-2. **Prerequisites** — required tools, technologies, SDKs/packages, accounts or
+2. **Sourced Repository** — a high-level, technically detailed overview of the
+   **real originating source repository** the pattern was derived from: its systems,
+   sub-systems, and key classes/modules/services, and how they fit together. The
+   purpose is to give the reader the context needed to understand *what was actually
+   studied* when deriving the pattern. **This chapter is the single explicit
+   exception to the name-generalization rule (§3 Step 4 / §7): it uses the source's
+   real identifiers.** See the per-chapter guidance below for what to cover.
+3. **Prerequisites** — required tools, technologies, SDKs/packages, accounts or
    permissions, and assumed skills.
-3. **High Level Architecture** — core systems/sub-systems, major components, how
+4. **High Level Architecture** — core systems/sub-systems, major components, how
    they interact, and data/request flow. Rendered as an interactive **left-to-right
    node graph**: clickable **nodes → modal dialogs**, with directional **labeled
    edges** showing each relationship (see §7 and `architecture-template.html`).
@@ -156,6 +168,25 @@ of the System", "Bringing It All Together", "Start with the Data"). Keep titles
 short and concrete. Write them in **title case** (capitalize principal words as
 for the title of a book or article), not sentence case or prose. The same rule
 applies to the section titles within each chapter (see §7).
+
+**Sourced Repository chapter — what to cover.** This chapter is unique: it
+describes the **real source repository** the pattern was derived from, so the
+reader knows exactly what was studied. Write it from the deep research in Step 3 and
+cover, with genuine technical depth (per §7):
+- **What the project is**: its purpose, domain, and tech stack (languages,
+  frameworks, runtimes, notable libraries/SDKs/services).
+- **Systems and sub-systems**: the major systems, the sub-systems inside them, and
+  how they interact (entry points, control flow, data/request flow).
+- **Key classes/modules/services**: the important real types and their
+  responsibilities, the contracts/invariants they uphold, and the boundaries
+  (interfaces, seams) between them.
+- **How it maps to the pattern**: close by pointing out which parts of this real
+  structure the rest of the guide generalizes, so the reader can connect the
+  concrete source to the abstracted lesson that follows.
+This is the **one place real source identifiers are used** — see §3 Step 4 / §7 for
+the strict boundary. Standard cards (`.card-grid`/`.card`) are appropriate here; do
+**not** use the architecture node-graph template (that is the High Level
+Architecture chapter, which stays generalized).
 
 ### Step 6 — Present the summary and table of contents for approval (required gate)
 Before writing **any** files, stop and present the following to the user, then
@@ -196,6 +227,8 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
 - **Delete every `<!-- TEMPLATE-GUIDE … -->` comment** — these are author guidance,
   not output, and they contain `{{…}}` tokens that must not ship.
 - Most chapters → `templates/page-template.html`.
+- Sourced Repository → `templates/page-template.html` (standard chapter; uses the
+  real source identifiers per §3 Step 4 / Step 5, not the architecture node graph).
 - Table of Contents (`index.html`) → `templates/toc-template.html`.
 - High Level Architecture → `page-template.html` with its `{{CHAPTER_BODY}}` built
   from `templates/architecture-template.html`. Build the **node graph**: place each
@@ -247,7 +280,7 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
    If you can't find `guide.json`, ask the user for the guide path.
 2. Read `guide.json`. Determine **placement** from the user (e.g. "after chapter 6",
    "before Deployment"); if unspecified, ask. Keep the required framing chapters
-   (TOC, Intro, Prerequisites, Architecture) at the front and
+   (TOC, Intro, Sourced Repository, Prerequisites, Architecture) at the front and
    Extending/Deployment/Appendix: Additional Reading at the back (Additional
    Reading absolute last) unless the user says otherwise.
 3. Create the new page from `page-template.html`, following §7 and using the existing
@@ -267,6 +300,12 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
      `<guide>/assets/` (prefer the `:root` token block between `TOKENS:START` /
      `TOKENS:END` for color/font/spacing changes) and adjust pages only if class
      names change.
+   - **Apply the dot-fade treatment to specific section(s)**: the default stylesheet
+     already ships the `.dot-fade` decorative section (see §7). When the user asks for
+     it on a named section, no CSS change is needed: add `class="dot-fade"` to that
+     `<section class="chapter-section">` (its background bleeds full-width while the
+     content stays put), and optionally use the `.dot-fade__grid` text-left /
+     pattern-right layout. Apply it only to the sections the user specifies.
    - **Re-skin from a supplied style guide** (`--style-guide` + `--style-css`):
      follow §6, then regenerate page markup as needed to fit the new design system.
 3. Keep the structure intact: every page must still have the fly-out TOC, stylized
@@ -327,7 +366,8 @@ When the user supplies their own style guide, **use it in place of the default**
   with no rationale. Use concrete, non-trivial code, and explain what each part
   does and *why it matters*. Depth and insight are the point of the guide.
 - **Chapters are chunked.** Split each chapter into logical sections, each separated
-  by a **stylized horizontal rule**: `<hr class="section-divider">`.
+  by a **horizontal rule**: `<hr class="section-divider">` (a thin navy hairline that
+  matches the rule under the chapter header).
 - **Titles + subtitles everywhere.** Every chapter has a header title + subhead
   subtitle (`.chapter-header`). Every section has its own title + subhead
   (`.section-heading` with `<h2>` + `.section-subhead`) briefly stating what it covers.
@@ -453,6 +493,31 @@ When the user supplies their own style guide, **use it in place of the default**
   stacked one per row, sized to the content column, so long URLs wrap inside the
   card rather than overflowing it. The architecture chapter uses clickable
   `.arch-node`s (graph nodes) → `.modal`.
+- **Dot-fade decorative section (opt-in).** The default stylesheet ships an optional
+  decorative treatment: a left-to-right gradient base with a navy **dot-matrix** that
+  fades in toward the right. The **background bleeds to the full page width** while the
+  section's content stays put in the reading column (the full-bleed is painted by a
+  `::before` layer, so you don't restructure or move the content). Use it **only when
+  the user explicitly asks** for it on specific section(s); it is never the default, and
+  pattern/architecture sections keep their normal styling. Add `class="dot-fade"` to a
+  `<section class="chapter-section">`. For the **text-left / pattern-right** layout, nest
+  a `.dot-fade__grid` with the reading copy in `.dot-fade__main` (left) and a small
+  decorative element (a `.pull-quote`, stat, or graphic) in `.dot-fade__aside` (right),
+  where the dots are densest. It collapses to a single column on narrow screens. Minimal
+  shape:
+  ```html
+  <section class="chapter-section dot-fade">
+    <div class="dot-fade__grid">
+      <div class="dot-fade__main">
+        <header class="section-heading"><h2>…</h2><p class="section-subhead">…</p></header>
+        <div class="prose"><p>…</p></div>
+      </div>
+      <aside class="dot-fade__aside"><blockquote class="pull-quote">…</blockquote></aside>
+    </div>
+  </section>
+  ```
+  Keep real content in `.dot-fade__main`; the pattern is purely decorative (the aside
+  may be `aria-hidden="true"` when it carries no meaningful text).
 - **Architecture node graph.** Render the architecture as a left-to-right layered
   **node graph**, not a flat card grid:
   - Each component is an `.arch-node` button (unique `id`, `data-modal` → its detail
@@ -508,9 +573,10 @@ Replace **all** of them; none may remain in a finished page.
 <parent>/development-pattern-guide/
 ├── index.html                         (Table of Contents)
 ├── 01-introduction.html
-├── 02-prerequisites.html
-├── 03-high-level-architecture.html    (node graph → modals)
-├── 04..NN-<pattern chapters>.html     (learn-by-doing)
+├── 02-sourced-repository.html         (real source repo — real identifiers)
+├── 03-prerequisites.html
+├── 04-high-level-architecture.html    (node graph → modals)
+├── 05..NN-<pattern chapters>.html     (learn-by-doing)
 ├── <NN>-extending-the-system.html
 ├── <NN>-deployment.html               (when applicable)
 ├── <NN>-appendix-additional-reading.html  (absolute last)
