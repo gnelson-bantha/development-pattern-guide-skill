@@ -6,6 +6,8 @@
    Derived from the project design system (example.css).
    ═══════════════════════════════════════════════════════════════ */
 
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap");
+
 /* === 0. Fonts (bundled, offline) ===================================== */
 @font-face {
   font-family: "Epilogue";
@@ -97,7 +99,7 @@
 
   /* ── Typography — bundled faces + system mono ─────────── */
   --font-display:   "Epilogue", "Segoe UI", Helvetica, Arial, sans-serif;          /* headers, 700 */
-  --font-subheader: "Lora", Georgia, "Times New Roman", serif;                     /* subheaders, italic 500 */
+  --font-subheader: "Instrument Serif", "Lora", Georgia, "Times New Roman", serif;  /* subheaders */
   --font-emphasis:  "DM Serif Display", Georgia, "Times New Roman", serif;         /* emphasis, italic 400 */
   --font-body:      Helvetica, Arial, "Segoe UI", system-ui, sans-serif;           /* body */
   --font-mono:      "Cascadia Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -368,11 +370,11 @@ main { display: block; }
   margin-top: var(--space-4);
   max-width: var(--measure);
   font-family: var(--font-subheader);
-  font-style: italic;
-  font-weight: 500;
+  font-style: normal;
+  font-weight: 400;
   font-size: 1.5rem;
   line-height: var(--leading-normal);
-  color: var(--ink-muted);
+  color: #5D5D5D;
 }
 
 /* === 8. Section system + stylized divider ========================== */
@@ -409,11 +411,11 @@ h3 {
   margin-top: var(--space-2);
   max-width: var(--measure);
   font-family: var(--font-subheader);
-  font-style: italic;
-  font-weight: 500;
-  font-size: var(--text-lg);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 1.5rem;
   line-height: var(--leading-normal);
-  color: var(--ink-muted);
+  color: #5D5D5D;
 }
 /* Horizontal rule between chapter chunks — a full-width navy hairline matching the
    chapter-header rule. It bleeds to the full page width like the dot-fade background. */
@@ -1009,10 +1011,10 @@ body.modal-open { overflow: hidden; }
   margin-top: var(--space-4);
   max-width: var(--measure);
   font-family: var(--font-subheader);
-  font-style: italic;
-  font-weight: 500;
+  font-style: normal;
+  font-weight: 400;
   font-size: 1.5rem;
-  color: var(--ink-muted);
+  color: #5D5D5D;
 }
 .toc-grid {
   list-style: none;
