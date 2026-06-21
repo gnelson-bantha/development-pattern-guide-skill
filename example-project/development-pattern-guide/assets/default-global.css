@@ -6,15 +6,13 @@
    Derived from the project design system (example.css).
    ═══════════════════════════════════════════════════════════════ */
 
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap");
-
 /* === 0. Fonts (bundled, offline) ===================================== */
 @font-face {
-  font-family: "Epilogue";
+  font-family: "Instrument Serif";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("fonts/epilogue-v20-latin-regular.woff2") format("woff2");
+  src: url("fonts/instrument-serif-v5-latin-regular.woff2") format("woff2");
 }
 @font-face {
   font-family: "Epilogue";
@@ -29,34 +27,6 @@
   font-weight: 700;
   font-display: swap;
   src: url("fonts/epilogue-v20-latin-700.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Lora";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("fonts/lora-v37-latin-regular.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Lora";
-  font-style: italic;
-  font-weight: 500;
-  font-display: swap;
-  src: url("fonts/lora-v37-latin-500italic.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Lora";
-  font-style: italic;
-  font-weight: 600;
-  font-display: swap;
-  src: url("fonts/lora-v37-latin-600italic.woff2") format("woff2");
-}
-@font-face {
-  font-family: "DM Serif Display";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("fonts/dm-serif-display-v17-latin-regular.woff2") format("woff2");
 }
 @font-face {
   font-family: "DM Serif Display";
@@ -101,7 +71,7 @@
 
   /* ── Typography — bundled faces + system mono ─────────── */
   --font-display:   "Epilogue", "Segoe UI", Helvetica, Arial, sans-serif;          /* headers, 700 */
-  --font-subheader: "Instrument Serif", "Lora", Georgia, "Times New Roman", serif;  /* subheaders */
+  --font-subheader: "Instrument Serif", Georgia, "Times New Roman", serif;  /* subheaders */
   --font-emphasis:  "DM Serif Display", Georgia, "Times New Roman", serif;         /* emphasis, italic 400 */
   --font-body:      Helvetica, Arial, "Segoe UI", system-ui, sans-serif;           /* body */
   --font-mono:      "Cascadia Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
