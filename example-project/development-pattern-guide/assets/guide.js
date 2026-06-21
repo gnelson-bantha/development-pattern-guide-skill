@@ -52,6 +52,42 @@
     });
   }
 
+  /* ── Theme toggle (light/dark, persisted) ──────────────────── */
+  function initThemeToggle() {
+    var STORAGE_KEY = "guide-theme";
+    var root = document.documentElement;
+    var btn = document.querySelector(".theme-toggle");
+
+    function isDark() {
+      return root.getAttribute("data-theme") === "dark";
+    }
+    function syncButton() {
+      if (!btn) return;
+      var dark = isDark();
+      btn.setAttribute("aria-pressed", dark ? "true" : "false");
+      btn.setAttribute(
+        "aria-label",
+        dark ? "Switch to light theme" : "Switch to dark theme"
+      );
+    }
+    function apply(dark) {
+      if (dark) root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      try {
+        localStorage.setItem(STORAGE_KEY, dark ? "dark" : "light");
+      } catch (e) {
+        /* storage unavailable — theme still applies for this page */
+      }
+      syncButton();
+    }
+
+    syncButton();
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      apply(!isDark());
+    });
+  }
+
   /* ── Current-page highlighting in the contents panel ────────── */
   function currentFile() {
     var path = window.location.pathname.split("/").pop();
@@ -485,6 +521,7 @@
   }
   ready(function () {
     initFlyout();
+    initThemeToggle();
     markCurrent();
     initModals();
     initArchGraph();

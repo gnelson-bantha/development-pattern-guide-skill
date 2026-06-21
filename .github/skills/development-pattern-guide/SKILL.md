@@ -551,6 +551,15 @@ When the user supplies their own style guide, **use it in place of the default**
     contains a nested `.arch-graph`. Use general-purpose names only.
 - **Fly-out Table of Contents.** Present on every page (the vertical **Contents**
   button on the left that reveals the panel on hover/focus/click).
+- **Light/dark theme toggle.** A sun/moon button sits at the far right of the site
+  header (in `.site-header__right`, after the meta text). `guide.js` toggles a
+  `data-theme="dark"` attribute on `<html>` and persists the choice in
+  `localStorage` (`guide-theme`); a small synchronous script in each page `<head>`
+  re-applies the saved theme before paint to avoid a flash. Light is the default
+  and the OS setting is ignored. Dark colors come from the
+  `html[data-theme="dark"]` token block in the CSS; **code blocks are intentionally
+  identical in both themes** (do not theme the `--code-*` tokens). Keep both the
+  header button markup and the `<head>` init script on every page.
 - **Footer prev/next.** Present on every page; each button labeled with the adjacent
   chapter's number **and** title; Previous left-aligned, Next right-aligned.
 - **Accessibility.** Keep the skip link, `role="dialog"`/`aria-modal` on modals,
