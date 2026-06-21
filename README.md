@@ -8,6 +8,9 @@ project the same way.
 A trivial example of the output: a tutorial that teaches the **Singleton Pattern**
 by walking through how to build a **database library**.
 
+**[See a live example of the skill's output](https://gnelson-bantha.github.io/development-pattern-guide-skill/example-project/development-pattern-guide/)**
+— a guide generated from the [`example-project/`](example-project/) sample codebase in this repository.
+
 ## What the skill does
 
 Given a repository path, a repo URL, or a local folder, the skill:
