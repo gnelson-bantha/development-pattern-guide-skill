@@ -40,12 +40,11 @@ no network**. All assets, including fonts, are bundled locally.
 | 0  | Table of Contents        | `index.html` landing page linking all chapters   |
 | 1  | Introduction             | What the pattern does at its core                |
 | 2  | Prerequisites            | Required tools, SDKs, accounts, assumed skills   |
-| 3  | Quick Start Guide        | Install and run locally in under 10 minutes      |
-| 4  | High Level Architecture  | Core systems and data/request flow (cards→modals)|
-| 5  | Helpful Resources        | Curated URLs for the stack and concepts          |
-| 6..N | Pattern chapters       | Learn-by-doing core, one page each               |
+| 3  | High Level Architecture  | Core systems and data/request flow (cards→modals)|
+| 4..N | Pattern chapters       | Learn-by-doing core, one page each               |
 | N  | Extending the System     | How to add features/plugins/modules              |
 | N  | Deployment               | When applicable (e.g. cloud / .NET Aspire)       |
+| N  | Appendix: Additional Reading | Curated URLs for the stack and concepts (absolute last) |
 
 ## How to use it
 
