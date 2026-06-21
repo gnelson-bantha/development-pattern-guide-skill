@@ -135,7 +135,7 @@ solution chapter-by-chapter.
 - **Extending the System** — how to add features/plugins/modules, where they hook
   into the pattern, and common extension patterns.
 - **Deployment** — *when applicable* (cloud-derived patterns): how to deploy. If the
-  source uses **.NET Aspire**, explain deploying with Aspire (e.g. `azd` / Aspire
+  source uses **Aspire**, explain deploying with Aspire (e.g. `azd` / Aspire
   manifests). Omit this chapter if deployment is not relevant to the pattern.
 - **Appendix: Additional Reading** — the **absolute last** chapter: curated URLs for
   the stack and concepts used by the pattern. Render these as a vertically stacked
@@ -341,32 +341,78 @@ When the user supplies their own style guide, **use it in place of the default**
     every title in **title case** (capitalize the principal words as for the
     title of a book or article), never sentence case or prose case. Put the
     descriptive, "what this covers" wording in the subhead.
-  - **Voice and prose style (professional but casual).** The guide is technical
-    documentation for an experienced software engineer, not marketing copy or an
-    essay. Aim for the tone of a knowledgeable colleague explaining the code at a
-    whiteboard: **professional but casual, clear, and conversational**. Describe
-    the technical facts accurately, what the code does, how it works, why it is
-    built this way, and what the trade-offs are, but write them as natural,
-    readable prose rather than terse fragments.
-    - **Casual is allowed; hype is not.** You may address the reader directly as
-      "you" and use contractions ("it's", "you'll", "doesn't") where they read
-      naturally. Casual means warm and plain-spoken, *not* sales-pitch or
-      promotional. Still do **not** use flowery or marketing language
+  - **Subheads must not be templated (read this).** The section subhead
+    (`.section-subhead`) is where AI tells show up most. Do **not** churn out
+    subheads on a fixed grammatical frame. Specifically, **avoid** the repeated
+    shapes that scream "generated":
+    - "Why the …" / "What the …" / "How the …" openings used over and over.
+    - "The X that …, and why …" (a noun phrase plus a tacked-on "and why" clause).
+    - "A/An X that …" noun-phrase fragments for every section.
+    - The **"short phrase, colon, explanation"** shape (e.g.
+      "The boundary to the outside world: locating and reading the source").
+    Within a single chapter, **no two subheads may share the same opening
+    structure.** Mix it up: sometimes a full casual sentence, sometimes a
+    question, sometimes a short remark a person would actually make out loud.
+    The subhead should sound spoken, not catalogued. Example of the trap and the
+    fix:
+    - Robotic: `The two failure cases this method guards against, and why it
+      fails loudly for one and quietly for the other.`
+    - Coffee-chat: `One of these failures should crash the program. The other
+      absolutely should not. Here's the difference.`
+  - **Voice and prose style (two engineers over coffee).** The guide is accurate
+    technical documentation for an experienced software engineer, but the *voice*
+    should sound like **two engineers talking shop over coffee**, not a whitepaper
+    and not marketing copy. Picture explaining this code to a friend you respect:
+    warm, plain-spoken, a little wry, occasionally thinking out loud. Describe the
+    technical facts accurately, what the code does, how it works, why it's built
+    this way, what it trades off, but say it the way a person actually talks.
+    - **Be genuinely casual.** Address the reader as "you", use contractions
+      freely ("it's", "you'll", "doesn't", "that's"), and let the rhythm breathe.
+      You may use the **first-person plural "we"** when walking through something
+      together ("we hand that off to the next layer"). You may ask the occasional
+      **rhetorical question**, drop a short **casual aside**, react to the code
+      like a human would ("nothing fancy here, and that's the point"), and use
+      **light humor** when it lands naturally. A well-chosen, concrete **analogy
+      or metaphor** is welcome when it makes an idea click, used sparingly and
+      tied to something real. Vary your register the way real conversation does:
+      some sentences are tight and technical, some are loose and offhand.
+    - **Never use first-person singular "I".** The voice is "you" and "we", never
+      "I" or "me". Don't narrate your own process or opinions in the first person.
+    - **Casual still is not hype.** Warm and conversational is the goal;
+      sales-pitch is not. Do **not** use flowery or marketing language
       ("elegantly", "powerful", "seamless", "beautiful", "unlock", "delightful",
-      "robust and scalable", "best-in-class"), and don't flatter the reader,
-      build suspense, or lean on metaphors and grand framing. Casual adds warmth
-      and continuity, never hype.
+      "robust and scalable", "best-in-class"), and don't flatter the reader or
+      manufacture suspense. Humor and analogies add warmth and clarity, never
+      hype.
     - **Preserve the terminology.** Keep technical terms, code identifiers, type
       and method names, and API names exact and unchanged; the relaxed tone never
       softens or paraphrases precise vocabulary. Stay precise and assume the
       reader knows how to program; prefer concrete, specific statements over
-      abstract or aspirational ones.
+      abstract or aspirational ones. When you use a specialized term, ground it in
+      a concrete example. Casual is about *register*, not about being vague.
     - **Avoid the obvious AI tells.** Vary sentence structure and length so the
-      prose doesn't fall into a repetitive template. Don't open every section the
-      same way or with formulaic scaffolding ("In this section, we will…", "Let's
-      dive into…"). Skip hollow summaries that just restate the heading,
-      reflexive hedging, and padding. Every sentence should carry real
-      information.
+      prose doesn't fall into a repetitive template, and throw in a genuinely
+      short sentence now and then. Don't open every section the same way or with
+      formulaic scaffolding ("In this section, we will…", "Let's dive into…").
+      Don't start paragraphs (or most sentences) with the "short noun phrase,
+      colon, explanation" pattern. Skip hollow summaries that just restate the
+      heading, reflexive hedging, and padding; every sentence should carry real
+      information. Don't feel obliged to bolt a transition word onto every idea.
+      Draw on specific examples and concrete analogies rather than generic
+      explanations. Avoid academic filler like "delve", "explore", or "unpack"
+      unless it's genuinely the best word. Write with the confidence of someone
+      who actually knows this code, not someone carefully balancing viewpoints,
+      and don't qualify every statement with politeness markers.
+    - **Quick before/after to calibrate the register:**
+      - Robotic: `The repository pattern provides an abstraction layer that
+        decouples the persistence mechanism from the consuming code.`
+      - Coffee-chat: `The repository is a thin wall between the rest of your code
+        and the database. Code on this side asks for records; it never has to
+        know they're sitting in SQLite.`
+      - Robotic: `This approach offers several benefits in terms of testability
+        and maintainability.`
+      - Coffee-chat: `The nice part is testing. Swap in a fake repository and the
+        layers above don't notice the difference.`
 - **Flow and transitions (no abrupt stops).** The guide should read as one
   continuous lesson, not a stack of disconnected fragments. Connect the parts:
   - **Within a chapter**, let each section lead into the next. When a section
@@ -379,6 +425,10 @@ When the user supplies their own style guide, **use it in place of the default**
     this chapter fits), and close it with a short bridge to the next chapter so
     the hand-off feels deliberate. Keep these intros and outros to a sentence or
     two; they should orient, not pad.
+  - Replace generic transitions ('furthermore,' 'moreover') with natural 
+    connection words ('though,' 'still,' 'actually').
+  - Feel free to occasionally start sentences with 'But' or 'And' if it flows 
+    naturally.
   - The first chapter has nothing before it and the last has nothing after, so
     skip the backward/forward bridge that doesn't apply.
 - **No em-dashes in generated content.** Do **not** use em-dashes (—) anywhere in

@@ -506,7 +506,7 @@ hr.section-divider::after {
 pre.codeblock,
 pre.codeblock code {
   font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-size: 10pt;
   line-height: var(--leading-normal);
 }
 pre.codeblock {
