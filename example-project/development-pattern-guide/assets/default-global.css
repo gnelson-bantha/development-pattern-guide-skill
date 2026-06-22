@@ -55,6 +55,7 @@
   --rule:         #000560;  /* navy hairline */
   --focus:        #0067B8;  /* focus ring */
   --dot:          rgba(0, 5, 96, 0.16); /* dot-fade matrix dot color */
+  --binary-grid:  url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='108'%20height='81'%3E%3Ctext%20x='4.5'%20y='21'%20font-family='Courier%20New,monospace'%20font-size='19.5'%20letter-spacing='16.5'%20fill='%23000560'%20fill-opacity='.16'%3E1010%3C/text%3E%3Ctext%20x='4.5'%20y='48'%20font-family='Courier%20New,monospace'%20font-size='19.5'%20letter-spacing='16.5'%20fill='%23000560'%20fill-opacity='.16'%3E0110%3C/text%3E%3Ctext%20x='4.5'%20y='75'%20font-family='Courier%20New,monospace'%20font-size='19.5'%20letter-spacing='16.5'%20fill='%23000560'%20fill-opacity='.16'%3E1101%3C/text%3E%3C/svg%3E"); /* binary-fade matrix glyph pattern */
   --code-bg:      #1E1E1E;  /* code block bg (VS Code dark) */
   --code-ink:     #D4D4D4;  /* code block text */
 
@@ -149,6 +150,7 @@ html[data-theme="dark"] {
   --rule:         #3E5F86;  /* blue-tinted hairline */
   --focus:        #6CB6FF;  /* focus ring */
   --dot:          rgba(108, 182, 255, 0.18); /* dot-fade matrix dot color */
+  --binary-grid:  url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='108'%20height='81'%3E%3Ctext%20x='4.5'%20y='21'%20font-family='Courier%20New,monospace'%20font-size='19.5'%20letter-spacing='16.5'%20fill='%236cb6ff'%20fill-opacity='.18'%3E1010%3C/text%3E%3Ctext%20x='4.5'%20y='48'%20font-family='Courier%20New,monospace'%20font-size='19.5'%20letter-spacing='16.5'%20fill='%236cb6ff'%20fill-opacity='.18'%3E0110%3C/text%3E%3Ctext%20x='4.5'%20y='75'%20font-family='Courier%20New,monospace'%20font-size='19.5'%20letter-spacing='16.5'%20fill='%236cb6ff'%20fill-opacity='.18'%3E1101%3C/text%3E%3C/svg%3E"); /* binary-fade matrix glyph pattern */
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.40);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.45);
@@ -471,10 +473,12 @@ hr.section-divider {
   margin: var(--space-6) 0;
   margin-left: calc(50% - 50vw);
 }
-/* Sit flush against an adjacent dot-fade band so the band's background touches the
-   rule directly, with no gap above or below it. */
-.dot-fade + hr.section-divider { margin-top: 0; }
-hr.section-divider:has(+ .dot-fade) { margin-bottom: 0; }
+/* Sit flush against an adjacent dot-fade / binary-fade band so the band's background
+   touches the rule directly, with no gap above or below it. */
+.dot-fade + hr.section-divider,
+.binary-fade + hr.section-divider { margin-top: 0; }
+hr.section-divider:has(+ .dot-fade),
+hr.section-divider:has(+ .binary-fade) { margin-bottom: 0; }
 
 /* Dot-fade — optional decorative section: gradient base + navy dot matrix that
    fades in toward the right. Opt-in only (never applied by default); add
@@ -515,17 +519,58 @@ hr.section-divider:has(+ .dot-fade) { margin-bottom: 0; }
   background-size: 100% 100%, 18px 18px, 100% 100%;
   background-repeat: no-repeat, repeat, no-repeat;
 }
-/* Two-column layout for a dot-fade section: reading copy left, decorative aside
-   right (where the dots are densest). */
-.dot-fade__grid {
+
+/* Binary-fade — optional decorative section: identical gradient base to .dot-fade,
+   but the dot matrix is replaced by a tiled monospace pattern of 1's and 0's that
+   reads like binary data, fading in toward the right. Opt-in only (never applied by
+   default); add class="binary-fade" to a <section class="chapter-section"> when the
+   user asks for it. Same full-bleed ::before technique as .dot-fade: top = white
+   overlay that hides the glyphs on the left, middle = the binary glyph tile
+   (--binary-grid, an inline SVG whose color mirrors --dot per theme), bottom =
+   surface→panel base. Pair the content with .binary-fade__grid for the text-left /
+   pattern-right two-column layout. */
+.binary-fade {
+  position: relative;
+  padding: var(--space-6) 0;
+}
+.binary-fade::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  z-index: -1;
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(90deg,
+      var(--surface) 0%,
+      var(--surface) 35%,
+      rgba(255, 255, 255, 0) 100%),
+    var(--binary-grid),
+    linear-gradient(90deg,
+      var(--surface) 0%,
+      var(--surface) 30%,
+      var(--panel) 100%);
+  background-size: 100% 100%, 108px 81px, 100% 100%;
+  background-repeat: no-repeat, repeat, no-repeat;
+}
+/* Two-column layout for a dot-fade / binary-fade section: reading copy left,
+   decorative aside right (where the pattern is densest). */
+.dot-fade__grid,
+.binary-fade__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 280px;
   gap: var(--space-7);
   align-items: start;
 }
-.dot-fade__grid > * { min-width: 0; }
-.dot-fade__main { min-width: 0; }
-.dot-fade__aside { align-self: start; }
+.dot-fade__grid > *,
+.binary-fade__grid > * { min-width: 0; }
+.dot-fade__main,
+.binary-fade__main { min-width: 0; }
+.dot-fade__aside,
+.binary-fade__aside { align-self: start; }
 
 /* === 9. Prose ====================================================== */
 .prose { max-width: none; }

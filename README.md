@@ -93,13 +93,16 @@ You can either tweak the existing CSS tokens or re-skin the whole guide from a
 supplied style guide, while preserving the required structure (fly-out TOC, section
 dividers, interactive cards, architecture modals, and prev/next navigation).
 
-You can also ask for specific sections to be given the optional **dot-fade**
-treatment — a gradient background with a navy dot-matrix overlay that fades in toward
-the right, with the section's text in a left column and the pattern in the right
-column. It ships in the default stylesheet and is applied only to the sections you name:
+You can also ask for specific sections to be given the optional **dot-fade** or
+**binary-fade** treatment — a gradient background with a decorative overlay that fades
+in toward the right, with the section's text in a left column and the pattern in the
+right column. `dot-fade` uses a navy dot-matrix; `binary-fade` uses the same gradient
+base but a tiled pattern of 1's and 0's (binary data). Both ship in the default
+stylesheet and are applied only to the sections you name:
 
 ```text
 Give the "What You'll Learn" section the dot-fade treatment in ./development-pattern-guide
+Give the "What You'll Learn" section the binary-fade treatment in ./development-pattern-guide
 ```
 
 ## Repository layout
@@ -124,9 +127,10 @@ developer-guide-website/
 The skill ships with everything needed to produce a fully offline site, located under
 `.github/skills/development-pattern-guide/assets/`:
 
-- `default-global.css` — the default stylesheet. Includes an optional `.dot-fade`
-  decorative section (gradient + navy dot-matrix overlay, text-left / pattern-right)
-  that can be applied to specific sections on request.
+- `default-global.css` — the default stylesheet. Includes the optional `.dot-fade`
+  and `.binary-fade` decorative sections (gradient base + navy dot-matrix or tiled
+  1's-and-0's binary overlay, text-left / pattern-right) that can be applied to
+  specific sections on request.
 - `guide.js` — fly-out TOC toggle, modal open/close, and current-page marking.
 - `fonts/` — bundled WOFF2 fonts (with `FONTS.md`).
 - `templates/` — `page-template.html`, `toc-template.html`,

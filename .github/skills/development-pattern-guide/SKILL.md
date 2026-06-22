@@ -300,12 +300,14 @@ For each chapter, copy the matching template and replace **every** `{{PLACEHOLDE
      `<guide>/assets/` (prefer the `:root` token block between `TOKENS:START` /
      `TOKENS:END` for color/font/spacing changes) and adjust pages only if class
      names change.
-   - **Apply the dot-fade treatment to specific section(s)**: the default stylesheet
-     already ships the `.dot-fade` decorative section (see §7). When the user asks for
-     it on a named section, no CSS change is needed: add `class="dot-fade"` to that
-     `<section class="chapter-section">` (its background bleeds full-width while the
-     content stays put), and optionally use the `.dot-fade__grid` text-left /
-     pattern-right layout. Apply it only to the sections the user specifies.
+   - **Apply the dot-fade / binary-fade treatment to specific section(s)**: the default
+     stylesheet already ships the `.dot-fade` and `.binary-fade` decorative sections
+     (see §7). When the user asks for one on a named section, no CSS change is needed:
+     add `class="dot-fade"` (navy dot-matrix) or `class="binary-fade"` (tiled 1's and
+     0's) to that `<section class="chapter-section">` (its background bleeds full-width
+     while the content stays put), and optionally use the matching `.dot-fade__grid` /
+     `.binary-fade__grid` text-left / pattern-right layout. Apply it only to the
+     sections the user specifies.
    - **Re-skin from a supplied style guide** (`--style-guide` + `--style-css`):
      follow §6, then regenerate page markup as needed to fit the new design system.
 3. Keep the structure intact: every page must still have the fly-out TOC, stylized
@@ -499,17 +501,21 @@ When the user supplies their own style guide, **use it in place of the default**
   stacked one per row, sized to the content column, so long URLs wrap inside the
   card rather than overflowing it. The architecture chapter uses clickable
   `.arch-node`s (graph nodes) → `.modal`.
-- **Dot-fade decorative section (opt-in).** The default stylesheet ships an optional
-  decorative treatment: a left-to-right gradient base with a navy **dot-matrix** that
-  fades in toward the right. The **background bleeds to the full page width** while the
+- **Dot-fade / binary-fade decorative section (opt-in).** The default stylesheet ships
+  two optional decorative treatments that share a left-to-right gradient base with a
+  pattern that fades in toward the right: `.dot-fade` overlays a navy **dot-matrix**,
+  and `.binary-fade` overlays a tiled monospace pattern of **1's and 0's** (binary
+  data). The **background bleeds to the full page width** while the
   section's content stays put in the reading column (the full-bleed is painted by a
-  `::before` layer, so you don't restructure or move the content). Use it **only when
-  the user explicitly asks** for it on specific section(s); it is never the default, and
-  pattern/architecture sections keep their normal styling. Add `class="dot-fade"` to a
+  `::before` layer, so you don't restructure or move the content). Use them **only when
+  the user explicitly asks** for one on specific section(s); they are never the default,
+  and pattern/architecture sections keep their normal styling. Add `class="dot-fade"`
+  (or `class="binary-fade"`) to a
   `<section class="chapter-section">`. For the **text-left / pattern-right** layout, nest
-  a `.dot-fade__grid` with the reading copy in `.dot-fade__main` (left) and a small
+  a `.dot-fade__grid` (or `.binary-fade__grid`) with the reading copy in
+  `.dot-fade__main` (left) and a small
   decorative element (a `.pull-quote`, stat, or graphic) in `.dot-fade__aside` (right),
-  where the dots are densest. It collapses to a single column on narrow screens. Minimal
+  where the pattern is densest. It collapses to a single column on narrow screens. Minimal
   shape:
   ```html
   <section class="chapter-section dot-fade">
@@ -523,7 +529,8 @@ When the user supplies their own style guide, **use it in place of the default**
   </section>
   ```
   Keep real content in `.dot-fade__main`; the pattern is purely decorative (the aside
-  may be `aria-hidden="true"` when it carries no meaningful text).
+  may be `aria-hidden="true"` when it carries no meaningful text). For `binary-fade`,
+  swap the `dot-fade*` class names for their `binary-fade*` equivalents.
 - **Architecture node graph.** Render the architecture as a left-to-right layered
   **node graph**, not a flat card grid:
   - Each component is an `.arch-node` button (unique `id`, `data-modal` → its detail
