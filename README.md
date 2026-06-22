@@ -1,4 +1,4 @@
-# Developer Guide Website
+# Developer Pattern Guide Agent Skill
 
 This repository hosts the **`development-pattern-guide`** agent skill — a tool that
 turns a real codebase into a **paginated, fully offline HTML tutorial website** that
